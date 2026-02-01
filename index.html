@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 بطوط التعليمية - اختر كليتك</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --space-dark: #0a0a2a;
+            --space-darker: #05051a;
+            --space-blue: #1a1a4a;
+            --space-purple: #4a1a6a;
+            --space-cyan: #00ffff;
+            --space-light-cyan: #80ffff;
+            --space-white: #ffffff;
+            --space-gray: #a0a0c0;
+            --glow-effect: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #0a0a2a 0%, #1a1a4a 50%, #4a1a6a 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* النجوم المتحركة */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .stars::before,
+        .stars::after {
+            content: '';
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            box-shadow: 
+                100px 100px white, 200px 150px white, 300px 50px white,
+                400px 200px white, 500px 100px white, 600px 250px white,
+                700px 50px white, 800px 180px white, 900px 120px white,
+                1000px 220px white, 1100px 80px white, 1200px 160px white,
+                150px 300px white, 350px 280px white, 550px 320px white,
+                750px 300px white, 950px 340px white, 1150px 290px white,
+                50px 400px white, 250px 450px white, 450px 420px white,
+                650px 480px white, 850px 440px white, 1050px 460px white;
+            animation: starsMove 100s linear infinite;
+        }
+
+        .stars::after {
+            width: 1px;
+            height: 1px;
+            animation-duration: 150s;
+        }
+
+        @keyframes starsMove {
+            from { transform: translateY(0); }
+            to { transform: translateY(-1000px); }
+        }
+
+        /* الكواكب العائمة */
+        .planet {
+            position: fixed;
+            border-radius: 50%;
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .planet-1 {
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle at 30% 30%, #00ffff, #0066ff);
+            top: 10%;
+            left: 10%;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .planet-2 {
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle at 30% 30%, #ff00ff, #6600ff);
+            bottom: 15%;
+            right: 15%;
+            animation: float 15s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(180deg); }
+        }
+
+        /* الحاوية الرئيسية */
+        .container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* العنوان */
+        .header {
+            margin-bottom: 60px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .logo i {
+            font-size: 4rem;
+            color: var(--space-cyan);
+            filter: drop-shadow(var(--glow-effect));
+            animation: rocket-float 3s ease-in-out infinite;
+        }
+
+        @keyframes rocket-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .logo h1 {
+            font-size: 3.5rem;
+            color: var(--space-white);
+            font-weight: 800;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.6);
+        }
+
+        .subtitle {
+            font-size: 1.8rem;
+            color: var(--space-cyan);
+            font-weight: 600;
+            margin-top: 10px;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .description {
+            font-size: 1.2rem;
+            color: var(--space-gray);
+            margin-top: 15px;
+            line-height: 1.8;
+        }
+
+        /* شبكة الكليات */
+        .colleges-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 40px;
+            margin-top: 50px;
+            animation: fadeInUp 1s ease-out 0.3s backwards;
+        }
+
+        /* بطاقة الكلية */
+        .college-card {
+            position: relative;
+            background: linear-gradient(145deg, rgba(26, 26, 74, 0.8) 0%, rgba(74, 26, 106, 0.6) 100%);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 30px;
+            padding: 60px 40px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .college-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.1) 0%, transparent 70%);
+            transition: all 0.6s ease;
+            opacity: 0;
+        }
+
+        .college-card:hover::before {
+            opacity: 1;
+            transform: rotate(45deg);
+        }
+
+        .college-card:hover {
+            transform: translateY(-15px) scale(1.02);
+            border-color: var(--space-cyan);
+            box-shadow: 
+                0 20px 60px rgba(0, 255, 255, 0.3),
+                0 0 40px rgba(0, 255, 255, 0.2),
+                inset 0 0 30px rgba(0, 255, 255, 0.1);
+        }
+
+        .college-icon {
+            font-size: 8rem;
+            margin-bottom: 30px;
+            filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.6));
+            transition: all 0.4s ease;
+        }
+
+        .college-card:hover .college-icon {
+            transform: scale(1.1) rotateY(180deg);
+            filter: drop-shadow(0 0 30px rgba(0, 255, 255, 0.9));
+        }
+
+        /* الأيقونة للحاسبات */
+        .fci-icon {
+            color: #00ffff;
+        }
+
+        /* الأيقونة للذكاء الاصطناعي */
+        .fai-icon {
+            color: #ff00ff;
+        }
+
+        .college-title {
+            font-size: 2.5rem;
+            color: var(--space-white);
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .college-subtitle {
+            font-size: 1.2rem;
+            color: var(--space-gray);
+            margin-bottom: 20px;
+        }
+
+        .college-description {
+            font-size: 1rem;
+            color: var(--space-gray);
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        /* زر الدخول */
+        .enter-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #00ffff 0%, #0088ff 100%);
+            color: var(--space-dark);
+            border: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0, 255, 255, 0.4);
+        }
+
+        .enter-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 30px rgba(0, 255, 255, 0.6);
+            background: linear-gradient(135deg, #00ffff 0%, #00aaff 100%);
+        }
+
+        /* Modal للاختيار */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal.active {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(145deg, rgba(26, 26, 74, 0.95) 0%, rgba(74, 26, 106, 0.9) 100%);
+            border: 3px solid var(--space-cyan);
+            border-radius: 30px;
+            padding: 50px 40px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.5);
+            animation: scaleIn 0.4s ease-out;
+            position: relative;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            margin-bottom: 40px;
+        }
+
+        .modal-header i {
+            font-size: 4rem;
+            color: var(--space-cyan);
+            filter: drop-shadow(0 0 20px rgba(0, 255, 255, 0.6));
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 2rem;
+            color: var(--space-white);
+            font-weight: 800;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+            margin-bottom: 10px;
+        }
+
+        .modal-header p {
+            font-size: 1.1rem;
+            color: var(--space-gray);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 2rem;
+            color: var(--space-gray);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .close-btn:hover {
+            color: var(--space-cyan);
+            background: rgba(0, 255, 255, 0.1);
+            transform: rotate(90deg);
+        }
+
+        .semester-options {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .semester-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px 30px;
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.1) 0%, rgba(0, 136, 255, 0.1) 100%);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 20px;
+            color: var(--space-white);
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .semester-btn:hover {
+            background: linear-gradient(135deg, #00ffff 0%, #0088ff 100%);
+            border-color: var(--space-cyan);
+            color: var(--space-dark);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 255, 0.4);
+        }
+
+        .semester-btn i {
+            font-size: 1.5rem;
+        }
+
+        /* الفوتر */
+        .footer {
+            position: relative;
+            margin-top: 60px;
+            padding: 20px;
+            color: var(--space-gray);
+            font-size: 0.9rem;
+            z-index: 10;
+            animation: fadeIn 2s ease-out;
+            text-align: center;
+        }
+
+        .footer i {
+            color: var(--space-cyan);
+        }
+
+        /* الأنيميشن */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* استجابة للموبايل */
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 10px;
+            }
+
+            .logo h1 {
+                font-size: 2.2rem;
+            }
+
+            .subtitle {
+                font-size: 1.3rem;
+            }
+
+            .description {
+                font-size: 1rem;
+            }
+
+            .colleges-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .college-card {
+                padding: 40px 30px;
+            }
+
+            .college-icon {
+                font-size: 6rem;
+            }
+
+            .college-title {
+                font-size: 2rem;
+            }
+
+            .college-subtitle {
+                font-size: 1rem;
+            }
+
+            .footer {
+                margin-top: 40px;
+                font-size: 0.8rem;
+            }
+
+            .modal-content {
+                padding: 40px 30px;
+            }
+
+            .modal-header h2 {
+                font-size: 1.6rem;
+            }
+
+            .semester-btn {
+                font-size: 1.1rem;
+                padding: 18px 25px;
+            }
+        }
+
+        /* تأثير النقر */
+        .college-card:active {
+            transform: translateY(-10px) scale(0.98);
+        }
+    </style>
+</head>
+<body>
+    <!-- النجوم المتحركة -->
+    <div class="stars"></div>
+    
+    <!-- الكواكب العائمة -->
+    <div class="planet planet-1"></div>
+    <div class="planet planet-2"></div>
+
+    <!-- المحتوى الرئيسي -->
+    <div class="container">
+        <!-- العنوان -->
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-rocket"></i>
+                <h1>بطوط التعليمية</h1>
+            </div>
+            <h2 class="subtitle">اختر كليتك</h2>
+            <p class="description">رحلتك التعليمية تبدأ من هنا - اختر كليتك وابدأ التحدي!</p>
+        </div>
+
+        <!-- شبكة الكليات -->
+        <div class="colleges-grid">
+            <!-- كلية الحاسبات والمعلومات -->
+            <div class="college-card" onclick="openModal('fci')">
+                <i class="fas fa-laptop-code college-icon fci-icon"></i>
+                <h3 class="college-title">حاسبات ومعلومات</h3>
+                <p class="college-subtitle">Faculty of Computers & Information</p>
+                <p class="college-description">
+                    استكشف عالم البرمجة، قواعد البيانات، الشبكات، وتطوير البرمجيات
+                </p>
+                <button class="enter-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    دخول الكلية
+                </button>
+            </div>
+
+            <!-- كلية الذكاء الاصطناعي -->
+            <div class="college-card" onclick="openModal('fai')">
+                <i class="fas fa-robot college-icon fai-icon"></i>
+                <h3 class="college-title">ذكاء اصطناعي</h3>
+                <p class="college-subtitle">Faculty of Artificial Intelligence</p>
+                <p class="college-description">
+                    تعلم الذكاء الاصطناعي، تعلم الآلة، الشبكات العصبية، ومعالجة اللغة الطبيعية
+                </p>
+                <button class="enter-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    دخول الكلية
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- الفوتر -->
+    <div class="footer">
+        <p>🚀 تم التطوير بواسطة <strong>MOHAMED ALBTAT</strong> | جميع الحقوق محفوظة © 2025</p>
+    </div>
+
+    <!-- Modal لكلية الحاسبات -->
+    <div id="fci-modal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('fci')">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-header">
+                <i class="fas fa-laptop-code fci-icon"></i>
+                <h2>حاسبات ومعلومات</h2>
+                <p>اختر الترم اللي عايز تدخله</p>
+            </div>
+            <div class="semester-options">
+                <button class="semester-btn" onclick="navigateTo('fci', 1)">
+                    <i class="fas fa-calendar-alt"></i>
+                    الترم الأول
+                </button>
+                <button class="semester-btn" onclick="navigateTo('fci', 2)">
+                    <i class="fas fa-calendar-check"></i>
+                    الترم التاني
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal لكلية الذكاء الاصطناعي -->
+    <div id="fai-modal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('fai')">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-header">
+                <i class="fas fa-robot fai-icon"></i>
+                <h2>ذكاء اصطناعي</h2>
+                <p>الترم المتاح حالياً</p>
+            </div>
+            <div class="semester-options">
+                <button class="semester-btn" onclick="navigateTo('fai', 2)">
+                    <i class="fas fa-calendar-check"></i>
+                    الترم التاني
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(college) {
+            const modal = document.getElementById(`${college}-modal`);
+            modal.classList.add('active');
+            // منع السكرول في الخلفية
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(college) {
+            const modal = document.getElementById(`${college}-modal`);
+            modal.classList.remove('active');
+            // السماح بالسكرول مرة أخرى
+            document.body.style.overflow = 'auto';
+        }
+
+        function navigateTo(college, semester) {
+            console.log(`Navigating to ${college} - Semester ${semester}...`);
+            
+            if (college === 'fci') {
+                if (semester === 1) {
+                    // الترم الأول - الرابط الحالي
+                    window.location.href = 'indexfci.html';
+                } else if (semester === 2) {
+                    // الترم التاني - المجلد الجديد
+                    window.location.href = 'fci 2/index.html';
+                }
+            } else if (college === 'fai') {
+                if (semester === 2) {
+                    // الترم التاني - الرابط الحالي
+                    window.location.href = 'fai/index.html';
+                }
+            }
+        }
+
+        // تأثيرات إضافية عند تحريك الماوس
+        document.querySelectorAll('.college-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                const rotateX = (y - centerY) / 20;
+                const rotateY = (centerX - x) / 20;
+                
+                card.style.transform = `translateY(-15px) scale(1.02) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+            });
+        });
+
+        // إغلاق الـ Modal عند الضغط على الخلفية
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    const modalId = modal.id.replace('-modal', '');
+                    closeModal(modalId);
+                }
+            });
+        });
+
+        // إغلاق الـ Modal عند الضغط على Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.active').forEach(modal => {
+                    const modalId = modal.id.replace('-modal', '');
+                    closeModal(modalId);
+                });
+            }
+        });
+
+        // منع النقر بالزر الأيمن على الصفحة (اختياري)
+        document.addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+    </script>
+</body>
+</html>
