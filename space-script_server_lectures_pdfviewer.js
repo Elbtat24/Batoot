@@ -1,22 +1,11 @@
-// space-script.js
-// النظام التفاعلي للمنصة الفضائية
-
-// قاعدة بيانات المتصدرين العالمية
 const GLOBAL_LEADERBOARD_KEY = 'global_challenge_leaderboard_v2';
-
-// إعدادات مدة الامتحان (محلياً داخل المتصفح)
 const CHALLENGE_DURATION_KEY = 'spacePlatform_challengeDurationSeconds_v1';
 const QUICK_EXAM_DURATION_KEY = 'spacePlatform_quickExamDurationSeconds_v1';
 const DEFAULT_CHALLENGE_DURATION_SECONDS = 5 * 60;
 const DEFAULT_QUICK_EXAM_DURATION_SECONDS = 10 * 60;
-
-// اسم مادة وضع التحدي (يمكن تعديله من صفحة الأدمن)
 const CHALLENGE_SUBJECT_NAME_KEY = 'spacePlatform_challengeSubjectName_v1';
 const DEFAULT_CHALLENGE_SUBJECT_NAME = 'وضع التحدي';
-
-// إعدادات عامة يمكن مشاركتها عبر Firebase (اختياري)
 const FIRESTORE_CONFIG_COLLECTION = 'examConfig_v1';
-
 function getChallengeSubjectName() {
     return String(localStorage.getItem(CHALLENGE_SUBJECT_NAME_KEY) || '').trim() || DEFAULT_CHALLENGE_SUBJECT_NAME;
 }
@@ -49,8 +38,6 @@ function applyChallengeSubjectNameToUI() {
         }
     }
 }
-
-// فلترة اسم المادة (يسمح بالأرقام وبعض الرموز البسيطة)
 function filterSubjectName(subject) {
     if (!subject) return '';
     let s = String(subject).replace(/\s+/g, ' ').trim();
@@ -62,13 +49,9 @@ function filterSubjectName(subject) {
     }
 
     if (s.length < 2 || s.length > 60) return null;
-
-    // يسمح: عربي/إنجليزي + أرقام + مسافات + - _ ( )
     const valid = /^[\u0600-\u06FFa-zA-Z0-9 \-()_]+$/;
     if (!valid.test(s)) return null;
-
-    // رفض التكرار المبالغ فيه
-    if (/(.)\1{4,}/.test(s)) return null;
+   if (/(.)\1{4,}/.test(s)) return null;
 
     return s;
 }
@@ -129,14 +112,9 @@ async function syncChallengeSubjectNameFromFirestore() {
         return false;
     }
 }
-
-// تهيئة اسم المادة (قبل/أثناء التحدي + داخل صفحة الأدمن)
 function initChallengeSubjectUI() {
-    // تطبيق القيمة الحالية فوراً
     applyChallengeSubjectNameToUI();
-
-    // محاولة جلب آخر قيمة من Firebase (لو متاح)
-    syncChallengeSubjectNameFromFirestore();
+   syncChallengeSubjectNameFromFirestore();
 }
 
 
@@ -165,12 +143,6 @@ function setQuickExamDurationSeconds(seconds) {
     const s = clampInt(seconds, 60, 60 * 60, DEFAULT_QUICK_EXAM_DURATION_SECONDS);
     localStorage.setItem(QUICK_EXAM_DURATION_KEY, String(s));
 }
-
-
-
-// =====================
-// مزامنة مدة الامتحان/التحدي مع Firestore (عشان أي تغيير من الأدمن ينعكس عند الكل)
-// =====================
 
 let __examDurationsUnsub = null;
 
@@ -211,12 +183,11 @@ function applySyncedExamDurations(value, { refreshUI = true } = {}) {
         setChallengeDurationSeconds(ch);
         setQuickExamDurationSeconds(q);
 
-        if (refreshUI) {
-            // تحديث الواجهة (بدون ما نوقف أي امتحان شغال)
+        if (refreshUI) { 
             try { initDurationSettingsUI(); } catch (e) {}
         }
     } catch (e) {
-        // ignore
+        
     }
 }
 
@@ -254,10 +225,7 @@ async function syncExamDurationsFromFirestore() {
 }
 
 function initExamDurationsSync() {
-    // one-time pull
     syncExamDurationsFromFirestore();
-
-    // real-time updates (بدون Refresh)
     try {
         if (!isFirestoreReady()) return;
         if (__examDurationsUnsub) return;
@@ -297,8 +265,6 @@ function formatMMSS(totalSeconds) {
     return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 }
 
-
-// بيانات التطبيق
 const appData = {
     currentUser: null,
     firebaseUser: null,
@@ -513,7 +479,6 @@ const appData = {
     }
 };
 
-// أسئلة وضع التحدي (الافتراضية)
 const DEFAULT_CHALLENGE_QUESTIONS = [
     {
         question: "In Young's double-slit experiment, constructive interference occurs when the path difference is...",
@@ -616,8 +581,6 @@ const DEFAULT_CHALLENGE_QUESTIONS = [
         correct: 0
     }
 ];
-
-// حفظ/تحميل أسئلة وضع التحدي من المتصفح
 const CHALLENGE_QUESTIONS_KEY = 'spacePlatform_challengeQuestions_v1';
 
 function normalizeChallengeQuestions(raw) {
@@ -635,17 +598,10 @@ function normalizeChallengeQuestions(raw) {
 
             return { question, options, correct };
         })
-        // تجاهل العناصر غير الصالحة
         .filter(q => q.question.length > 0 && Array.isArray(q.options) && q.options.length === 4 && q.options.every(o => String(o).trim().length > 0));
 
     return cleaned;
 }
-
-
-// =====================
-// مزامنة أسئلة وضع التحدي مع Firestore (عشان كل المستخدمين يشوفوا نفس الأسئلة)
-// =====================
-
 let __challengeQuestionsUnsub = null;
 
 async function saveChallengeQuestionsToFirestore(questions) {
@@ -684,8 +640,6 @@ function applySyncedChallengeQuestions(normalized, { renderSettingsIfOpen = true
 
         localStorage.setItem(CHALLENGE_QUESTIONS_KEY, newStr);
         challengeQuestions = clean;
-
-        // حدّث الدرافـت في الإعدادات فقط لو مش في نص تعديل
         let canTouchDraft = true;
         try { void challengeQuestionsDraft; } catch (e) { canTouchDraft = false; }
 
@@ -705,7 +659,6 @@ function applySyncedChallengeQuestions(normalized, { renderSettingsIfOpen = true
             }
         }
     } catch (e) {
-        // ignore
     }
 }
 
@@ -743,10 +696,7 @@ async function syncChallengeQuestionsFromFirestore() {
 }
 
 function initChallengeQuestionsSync() {
-    // one-time pull
     syncChallengeQuestionsFromFirestore();
-
-    // real-time updates (بدون ما نحتاج Refresh)
     try {
         if (!isFirestoreReady()) return;
         if (__challengeQuestionsUnsub) return;
@@ -804,10 +754,7 @@ function saveChallengeQuestions(newQuestions) {
     return true;
 }
 
-// الأسئلة الحالية المستخدمة في وضع التحدي
 let challengeQuestions = loadChallengeQuestions();
-
-// متغيرات نظام التحدي
 let challengeQuestionsData = [];
 let currentChallengeIndex = 0;
 let challengeAnswers = {};
@@ -816,8 +763,6 @@ let challengeTimeRemaining = 300; // 5 دقائق
 let challengeStartTime = null;
 let challengerName = '';
 let challengeResults = [];
-
-// قائمة الكلمات الممنوعة
 const bannedWords = [
     'كس', 'طيز', 'زب', 'شرموط', 'عرص', 'متناك', 'منيك', 'لبوه', 'قحب', 'عاهر',
     'خول', 'ابن الكلب', 'ابن الحرام', 'ابن العرص', 'ابن الشرموطه', 'كسم',
@@ -829,13 +774,6 @@ const bannedWords = [
     'stupid', 'idiot', 'dumb', 'retard', 'loser', 'sucker', 'motherfucker',
     'ابليس', 'شيطان', 'satan', 'devil', 'demon'
 ];
-
-
-
-// =====================
-// نظام اسم المستخدم (يتم طلبه أول مرة ثم يُستخدم تلقائياً داخل المنصة والامتحانات)
-// =====================
-
 const ANON_USER_NAME = 'مجهول';
 
 const USER_FIRST_NAME_KEY_BASE = 'spacePlatform_firstName_v2';
@@ -854,12 +792,6 @@ function getFirstNameStorageKey() {
 function getUserDataStorageKey() {
     return `${USER_DATA_KEY_BASE}_${getCurrentUidOrAnon()}`;
 }
-
-
-// =====================
-// Firebase Auth + User Profiles (Firestore)
-// =====================
-
 function isAuthReady() {
     return !!(window.firebaseAuth && window.authApi);
 }
@@ -976,8 +908,6 @@ async function initAuthSystem() {
 
     const authApi = window.authApi;
     const auth = window.firebaseAuth;
-
-    // في حالة تم استخدام signInWithRedirect (مفيد للموبايل/الويب فيو)، خلّص النتيجة بصمت
     try {
         if (authApi && typeof authApi.getRedirectResult === 'function') {
             await authApi.getRedirectResult(auth);
@@ -997,8 +927,6 @@ async function initAuthSystem() {
             showAuthModal('حصل خطأ أثناء تسجيل الدخول. حاول مرة تانية.');
         }
     });
-
-    // زر الخروج (في الهيدر)
     const logoutBtn = document.getElementById('logoutNavBtn');
     if (logoutBtn && !logoutBtn.__bound) {
         logoutBtn.__bound = true;
@@ -1030,7 +958,6 @@ async function handleGoogleSignIn() {
         try {
             await signInWithPopup(auth, provider);
         } catch (e) {
-            // بعض الأجهزة/المتصفحات (خصوصاً الموبايل أو داخل WebView) بتفشل الـ Popup
             const code = String(e?.code || '');
             const msg = String(e?.message || '').toLowerCase();
 
@@ -1041,15 +968,13 @@ async function handleGoogleSignIn() {
                 msg.includes('popup');
 
             if (shouldRedirect && typeof signInWithRedirect === 'function') {
-                // هتعمل Redirect وتكمل تلقائياً بعد الرجوع
                 await signInWithRedirect(auth, provider);
                 return;
             }
 
             throw e;
         }
-
-        // onAuthStateChanged will handle the rest
+        
     } catch (e) {
         console.error(e);
         showAlert('فشل تسجيل الدخول بجوجل. حاول تاني.', 'error');
@@ -1080,7 +1005,6 @@ async function handleEmailSignUp() {
 try {
             await ensureUserProfile(cred.user);
         } catch (e) {
-            // ignore
         }
 
         showAlert('تم إنشاء الحساب! هتوصلك رسالة تفعيل على الإيميل.', 'success');
@@ -1194,7 +1118,6 @@ async function ensureUserProfile(user) {
                 lastSeenMs: now
             };
 
-            // لو الاسم ناقص، استخدم اللي في localStorage أو من auth
             const localName = getSavedFirstName();
             const currentName = String(profile.displayName || '').trim();
             const authName = String(user.displayName || '').trim();
@@ -1210,17 +1133,14 @@ async function ensureUserProfile(user) {
         console.error('ensureUserProfile failed', e);
         profile = null;
     }
-
-    // Cache
+    
     appData.userProfile = profile;
     appData.currentRole = String(profile?.role || 'student');
 
-    // Sync name to localStorage
     if (profile?.displayName) {
         setSavedFirstName(profile.displayName);
     }
 
-    // Listen for profile changes (role updates)
     try {
         if (appData._profileUnsub) {
             appData._profileUnsub();
@@ -1235,7 +1155,7 @@ async function ensureUserProfile(user) {
             applyRoleVisibilityToUI();
         });
     } catch (e) {
-        // ignore
+        
     }
 
     return profile;
@@ -1266,7 +1186,7 @@ async function updateUserPresenceTick() {
             emailVerified: !!appData.firebaseUser.emailVerified
         }, { merge: true });
     } catch (e) {
-        // ignore
+        
     }
 }
 
@@ -1296,7 +1216,7 @@ async function setUserCurrentExam(patch) {
         const ref = api.doc(db, FIRESTORE_USERS_COLLECTION, appData.firebaseUser.uid);
         await api.setDoc(ref, { ...patch, lastSeenMs: Date.now() }, { merge: true });
     } catch (e) {
-        // ignore
+        
     }
 }
 
@@ -1329,7 +1249,6 @@ function markExamFinishedFirestore(mode, subject, difficulty, percent, passed) {
 }
 
 async function handleAuthStateChanged(user) {
-    // cleanup
     appData.firebaseUser = user || null;
 
     if (!user) {
@@ -1340,7 +1259,6 @@ async function handleAuthStateChanged(user) {
         return;
     }
 
-    // Gate for email verification (email/password only)
     if (needsEmailVerification(user)) {
         applyRoleVisibilityToUI();
         setMainPlatformVisible(false);
@@ -1351,10 +1269,8 @@ async function handleAuthStateChanged(user) {
         return;
     }
 
-    // Ensure profile exists & read role
     await ensureUserProfile(user);
 
-    // Load local data per user
     if (typeof loadUserData === 'function') {
         loadUserData();
     }
@@ -1366,16 +1282,12 @@ async function handleAuthStateChanged(user) {
     const currentName = profileName || localName || authName;
 
     if (!currentName) {
-        // ask once
         openNameModal(() => {
             // will update on save inside verifyFirstNameAndContinue
             applyRoleVisibilityToUI();
         });
     } else {
-        // خزن الاسم محلياً حتى لو Firestore مش متاح (عشان ما يطلبوش تاني)
         if (currentName !== localName) setSavedFirstName(currentName);
-
-        // لو Firestore موجود لكن البروفايل مفيهوش اسم، اعمله Sync (غير مُعطّل للتجربة)
         if (!profileName && isFirestoreReady() && appData.firebaseUser) {
             (async () => {
                 try {
@@ -1396,15 +1308,11 @@ async function handleAuthStateChanged(user) {
             })();
         }
     }
-
-    // sync current user object name if needed
     ensureCurrentUserObject();
     if (currentName) {
         appData.currentUser.name = currentName;
         saveCurrentUserData();
     }
-
-    // Ready
     hideAuthModal();
     setMainPlatformVisible(true);
     applyRoleVisibilityToUI();
@@ -1430,7 +1338,6 @@ function setSavedFirstName(firstName) {
     try {
         saveCurrentUserData();
     } catch (e) {
-        // تجاهل
     }
 
     try { applyUserNameToUI(); } catch (e) {}
@@ -1445,8 +1352,6 @@ function getEffectiveUserName() {
 
     return '';
 }
-
-// نافذة الاسم
 let pendingNameCallback = null;
 
 function openNameModal(onDone) {
@@ -1456,7 +1361,6 @@ function openNameModal(onDone) {
     const input = document.getElementById('firstNameInput');
 
     if (!modal || !input) {
-        // fallback بسيط
         const raw = prompt('اكتب اسمك:');
         if (!raw) return;
 
@@ -1497,16 +1401,12 @@ function verifyFirstNameAndContinue() {
         input?.select?.();
         return;
     }
-
-    // حفظ الاسم محلياً (مفتاح خاص بالمستخدم)
+    
     setSavedFirstName(filtered);
 
-    // تحديث كائن المستخدم المحلي (للاختبارات/النقاط)
     ensureCurrentUserObject();
     appData.currentUser.name = filtered;
     saveCurrentUserData();
-
-    // لو المستخدم مسجل دخول بـ Firebase: خزّن الاسم في Firestore و Auth displayName
     (async () => {
         try {
             if (isAuthReady() && isFirestoreReady() && appData.firebaseUser) {
@@ -1582,10 +1482,7 @@ async function fetchLatestAttempts(maxItems = 200) {
     snap.forEach(doc => out.push({ id: doc.id, ...doc.data() }));
     return out;
 }
-
-// (لا يوجد اسم مستخدم في الواجهة بعد الآن)
 function applyUserNameToUI() {
-    // intentionally empty
 }
 
 function ensureCurrentUserObject() {
@@ -1606,7 +1503,6 @@ function ensureCurrentUserObject() {
     if (!appData.currentUser.joinDate) appData.currentUser.joinDate = new Date().toLocaleDateString('ar-EG');
     if (!appData.currentUser.level) appData.currentUser.level = 'مبتدئ';
 
-    // تحميل الاسم المحفوظ (الاسم الأول) إن وجد
     const savedFirstName = getSavedFirstName();
     if (savedFirstName) {
         appData.currentUser.name = savedFirstName;
@@ -1615,20 +1511,13 @@ function ensureCurrentUserObject() {
         if (!appData.currentUser.name) appData.currentUser.name = ANON_USER_NAME;
     }
 }
-
-// بدء الرحلة (موجودة للتوافق فقط - بدون تسجيل أسماء)
 function startJourney() {
     ensureCurrentUserObject();
     loadUserData();
 }
-
-// تغيير/تحديث الاسم (تم تعطيلها)
 function changeUserName() {}
 function updateUserName() {}
 
-// =====================
-// إعدادات مدة الامتحان (العد التنازلي)
-// =====================
 function initDurationSettingsUI() {
     // تحديث عرض مدة التحدي في الواجهة
     const challengeMinutes = Math.round(getChallengeDurationSeconds() / 60);
@@ -1641,8 +1530,6 @@ function initDurationSettingsUI() {
     const quickInput = document.getElementById('quickExamDurationMinutes');
     if (chInput) chInput.value = String(challengeMinutes);
     if (quickInput) quickInput.value = String(Math.round(getQuickExamDurationSeconds() / 60));
-
-    // تحديث عرض المؤقت لو التحدي مش شغال
     const timerDisplay = document.getElementById('timerDisplay');
     const challengeContainer = document.getElementById('challengeContainer');
     if (timerDisplay && challengeContainer && challengeContainer.style.display === 'none') {
@@ -1663,14 +1550,10 @@ async function saveExamDurations() {
     const chSeconds = chMin * 60;
     const qSeconds = qMin * 60;
 
-    // حفظ محلي (LocalStorage)
     setChallengeDurationSeconds(chSeconds);
     setQuickExamDurationSeconds(qSeconds);
 
-    // مشاركة مدة الامتحان/التحدي على Firestore (عشان كل المستخدمين تتحدث عندهم)
     const okDur = await saveExamDurationsToFirestore({ challengeSeconds: chSeconds, quickSeconds: qSeconds });
-
-    // حفظ اسم مادة التحدي (اختياري)
     let okSubj = true;
     const rawSubject = String(subj?.value || '').trim();
     if (rawSubject) {
@@ -1684,7 +1567,6 @@ async function saveExamDurations() {
         setChallengeSubjectName(cleanSubject);
         okSubj = await saveChallengeSubjectNameToFirestore(cleanSubject);
     } else {
-        // لو فاضي: رجوع للافتراضي
         setChallengeSubjectName('');
         okSubj = await saveChallengeSubjectNameToFirestore(DEFAULT_CHALLENGE_SUBJECT_NAME);
     }
@@ -1699,21 +1581,16 @@ async function saveExamDurations() {
     }
 }
 
-// تهيئة النجوم المتحركة
 function initStars() {
     console.log("النجوم الفضائية جاهزة للانطلاق! 🚀");
 }
 
-// إغلاق النافذة المنبثقة
 function closeModal(modalId) {
     document.getElementById(modalId).style.display = 'none';
 }
 
-// تحميل بيانات المستخدم
 function loadUserData() {
     const key = getUserDataStorageKey();
-
-    // هجرة بيانات قديمة (لو موجودة قبل إضافة تسجيل الدخول)
     const legacy = localStorage.getItem('spacePlatform_userData');
     const savedData = localStorage.getItem(key) || legacy;
 
@@ -1726,11 +1603,7 @@ function loadUserData() {
     }
 
     ensureCurrentUserObject();
-
-    // حفظ نسخة سليمة في المفتاح الجديد
     saveCurrentUserData();
-
-    // تحميل نتائج الامتحانات السابقة
     loadPreviousResults();
 }
 
@@ -1738,11 +1611,9 @@ function saveCurrentUserData() {
     try {
         localStorage.setItem(getUserDataStorageKey(), JSON.stringify(appData.currentUser));
     } catch (e) {
-        // ignore
     }
 }
 
-// تحميل لوحة المتصدرين
 function loadLeaderboard() {
     // تحميل من localStorage أو استخدام بيانات افتراضية
     const savedLeaderboard = localStorage.getItem('spacePlatform_leaderboard');
@@ -1750,7 +1621,6 @@ function loadLeaderboard() {
     if (savedLeaderboard) {
         appData.leaderboard = JSON.parse(savedLeaderboard);
     } else {
-        // بيانات افتراضية للمتصدرين
         appData.leaderboard = [
             { name: 'أحمد محمود', subject: 'physics', points: 920, level: 'خبير', date: '2025-01-15' },
             { name: 'محمد أحمد', subject: 'math', points: 850, level: 'متقدم', date: '2025-01-14' },
@@ -1767,8 +1637,6 @@ function loadLeaderboard() {
     
     updateLeaderboardDisplay();
 }
-
-// الحصول على اسم المادة
 function getSubjectName(subjectCode) {
     const subjects = {
         'physics': 'الفيزياء',
@@ -1785,9 +1653,7 @@ function getSubjectName(subjectCode) {
     return subjects[subjectCode] || subjectCode;
 }
 
-// تحديث عرض لوحة المتصدرين
 function updateLeaderboardDisplay() {
-    // تحديث المراكز الثلاثة الأولى
     if (appData.leaderboard.length > 0) {
         document.getElementById('firstName').textContent = appData.leaderboard[0].name;
         document.getElementById('firstScore').textContent = appData.leaderboard[0].points + ' نقطة';
@@ -1803,11 +1669,8 @@ function updateLeaderboardDisplay() {
         }
     }
     
-    // تحديث موقع المستخدم الحالي
     updateUserPosition();
 }
-
-// تحديث موقع المستخدم الحالي في اللوحة
 function updateUserPosition() {
     if (!appData.currentUser) return;
     
@@ -1820,7 +1683,6 @@ function updateUserPosition() {
         document.querySelector('.position-score').textContent = userEntry.points + ' نقطة';
         document.querySelector('.position-level').textContent = userEntry.level;
     } else {
-        // المستخدم ليس في اللوحة بعد
         document.querySelector('.position-rank').textContent = '#--';
         document.querySelector('.position-name').textContent = appData.currentUser.name;
         document.querySelector('.position-score').textContent = appData.currentUser.points + ' نقطة';
@@ -1828,11 +1690,8 @@ function updateUserPosition() {
     }
 }
 
-// تحديث إدخال المستخدم في لوحة المتصدرين
 function updateLeaderboardEntry() {
     if (!appData.currentUser) return;
-    
-    // البحث عن المستخدم الحالي في اللوحة
     const userIndex = appData.leaderboard.findIndex(entry => entry.name === appData.currentUser.name);
     
     const userEntry = {
@@ -1844,26 +1703,19 @@ function updateLeaderboardEntry() {
     };
     
     if (userIndex >= 0) {
-        // تحديث الإدخال الحالي
         appData.leaderboard[userIndex] = userEntry;
     } else {
-        // إضافة إدخال جديد
         appData.leaderboard.push(userEntry);
     }
     
-    // ترتيب اللوحة حسب النقاط (تنازلياً)
     appData.leaderboard.sort((a, b) => b.points - a.points);
     
-    // حفظ اللوحة المحدثة
     localStorage.setItem('spacePlatform_leaderboard', JSON.stringify(appData.leaderboard));
     
-    // تحديث العرض
     updateLeaderboardDisplay();
 }
 
-// تصفية لوحة المتصدرين
 function filterLeaderboard(filter) {
-    // في النسخة البسيطة، نقوم فقط بتغيير النمط للأزرار
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.remove('active');
     });
@@ -1873,15 +1725,12 @@ function filterLeaderboard(filter) {
     showAlert(`تم عرض المتصدرين: ${filter === 'all' ? 'الكل' : filter === 'week' ? 'هذا الأسبوع' : 'هذا الشهر'}`, 'info');
 }
 
-// تحديث إحصائيات المستخدم
 function updateUserStats() {
-    // تم إلغاء لوحة المتصدرين — نحتفظ فقط بتحديث المستوى/النتائج لو احتجنا
     try {
         updateUserLevel();
     } catch (e) {}
 }
 
-// تحميل نتائج الامتحانات السابقة
 function loadPreviousResults() {
     if (!appData.currentUser || !appData.currentUser.exams) return;
     
@@ -1918,21 +1767,15 @@ function loadPreviousResults() {
         resultsList.appendChild(resultItem);
     });
 }
-
-// إظهار قسم معين وإخفاء الآخرين
 function showSection(sectionId) {
     // حماية صفحة الإعدادات للأدمن فقط
     if (sectionId === 'settings' && !isCurrentUserAdminRole()) {
         showAlert('صفحة الإعدادات للأدمن فقط.', 'error');
         return;
     }
-
-    // تحديث الأزرار النشطة
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('active');
-    });
-    
-    // إضافة النشط للزر المناسب
+    }); 
     const activeBtn = Array.from(document.querySelectorAll('.nav-btn')).find(btn => 
         btn.textContent.includes(getSectionName(sectionId))
     );
@@ -1940,13 +1783,10 @@ function showSection(sectionId) {
     if (activeBtn) {
         activeBtn.classList.add('active');
     }
-    
-    // إخفاء جميع الأقسام
     document.querySelectorAll('.platform-section').forEach(section => {
         section.classList.remove('active');
     });
     
-    // إظهار القسم المطلوب
     const targetSection = document.getElementById(sectionId + 'Section');
     if (!targetSection) {
         console.warn(`Section not found: ${sectionId}Section`);
@@ -1954,25 +1794,19 @@ function showSection(sectionId) {
     }
     targetSection.classList.add('active');
     appData.currentSection = sectionId;
-    
-    // إذا كان قسم المتصدرين، قم بتحديثه
     if (sectionId === 'leaderboard') {
         updateLeaderboardDisplay();
         updateUserStats();
         loadChallengeLeaderboard();
     }
     
-    // إذا كان قسم النتائج، قم بتحميل النتائج
     if (sectionId === 'exams') {
         loadPreviousResults();
     }
-
-    // إذا كان قسم الإعدادات
 if (sectionId === 'settings') {
     updateAdminGateUI();
     updateSettingsVisibilityByAdmin();
 
-    // لا يتم إظهار/تحميل بيانات الإعدادات إلا بعد باسورد الأدمن
     if (isAdminUnlocked()) {
         renderChallengeQuestionsEditor();
         initDurationSettingsUI();
@@ -1983,7 +1817,6 @@ if (sectionId === 'settings') {
 }
 }
 
-// الحصول على اسم القسم
 function getSectionName(sectionId) {
     const sections = {
         'home': 'الرئيسية',
@@ -1993,17 +1826,7 @@ function getSectionName(sectionId) {
     
     return sections[sectionId] || sectionId;
 }
-
-// =====================
-// إعدادات أسئلة وضع التحدي
-// =====================
-
 let challengeQuestionsDraft = null;
-
-// =====================
-// قفل الأدمن لتعديل أسئلة التحدي (حماية محلية داخل المتصفح)
-// =====================
-
 const ADMIN_ACCESS_CODE = 'albtat@#10';
 const ADMIN_UNLOCK_SESSION_KEY = 'spacePlatform_adminUnlocked_v1';
 
@@ -2019,10 +1842,6 @@ function setAdminUnlocked(unlocked) {
     }
 }
 
-/**
- * إظهار/إخفاء محتوى الإعدادات بالكامل حسب حالة الأدمن
- * (المطلوب: لا تظهر بيانات الإعدادات إلا بعد باسورد الأدمن)
- */
 function updateSettingsVisibilityByAdmin() {
     const lockScreen = document.getElementById('settingsLockedScreen');
     const content = document.getElementById('settingsContent');
@@ -2033,7 +1852,6 @@ function updateSettingsVisibilityByAdmin() {
 }
 
 function setChallengeEditingEnabled(enabled) {
-    // تفعيل/تعطيل أزرار الإعدادات الثابتة
     document.querySelectorAll('[data-admin-edit="challenge"]').forEach(el => {
         try {
             el.disabled = !enabled;
@@ -2110,17 +1928,11 @@ function verifyAdminAccess() {
     setAdminUnlocked(true);
     closeModal('adminAccessModal');
     updateAdminGateUI();
-
-    // تجهيز الإعدادات بعد الفتح
     renderChallengeQuestionsEditor();
     initDurationSettingsUI();
 
     showAlert('تم فتح الإعدادات ✅', 'success');
 }
-// =====================
-// سجل الامتحانات (للأدمن) - يظهر بزرار فقط
-// =====================
-
 async function loadAdminAttempts(forceRefresh = false) {
     if (!isCurrentUserAdminRole()) {
         showAlert('للأدمن فقط.', 'error');
@@ -2135,8 +1947,6 @@ async function loadAdminAttempts(forceRefresh = false) {
     const status = document.getElementById('adminAttemptsStatus');
     const tbody = document.getElementById('adminAttemptsTableBody');
     const refreshBtn = document.getElementById('adminRefreshAttemptsBtn');
-
-    // Insights UI
     const insightsWrap = document.getElementById('adminAttemptsInsights');
     const insightsMeta = document.getElementById('adminAttemptsInsightsMeta');
     const top3List = document.getElementById('adminTop3List');
@@ -2165,7 +1975,6 @@ async function loadAdminAttempts(forceRefresh = false) {
     const api = window.firestoreApi;
     const db = window.firestoreDb;
 
-    // Unsubscribe previous live listener
     try {
         if (typeof __adminAttemptsUnsub === 'function') __adminAttemptsUnsub();
     } catch (e) {}
@@ -2205,7 +2014,6 @@ async function loadAdminAttempts(forceRefresh = false) {
             return;
         }
 
-        // Top 3 by percent then correct then earliest
         const topSorted = [...items].sort((a, b) => {
             const pa = normalizePercent(a);
             const pb = normalizePercent(b);
@@ -2249,8 +2057,6 @@ async function loadAdminAttempts(forceRefresh = false) {
         const fPercent = escapeHtml(String(normalizePercent(first || {})));
         const fTime = escapeHtml(formatDateTimeAr(first?.createdAtMs));
         firstHighlight.innerHTML = `${fName}<br><small>${fMode} • ${fSubject} • ${fPercent}% (${fScore}) • ${fTime}</small>`;
-
-        // Meta line
         if (insightsMeta) {
             const last = items[items.length - 1];
             const lastTxt = last ? `${escapeHtml(String(last.name || '—'))} • ${escapeHtml(formatDateTimeAr(last.createdAtMs))}` : '—';
@@ -2268,7 +2074,6 @@ async function loadAdminAttempts(forceRefresh = false) {
             return;
         }
 
-        // ترتيب حسب وقت الامتحان: الأقدم أولاً
         items.sort((a, b) => safeCreatedAtMs(a) - safeCreatedAtMs(b));
 
         updateInsights(items);
@@ -2319,7 +2124,6 @@ async function loadAdminAttempts(forceRefresh = false) {
         const attemptsCol = api.collection(db, FIRESTORE_ATTEMPTS_COLLECTION);
         const q = api.query(attemptsCol, api.orderBy('createdAtMs', 'asc'));
 
-        // تحديث تلقائي بمجرد فتح القائمة
         if (api.onSnapshot) {
             __adminAttemptsUnsub = api.onSnapshot(q, (snap) => {
                 renderFromDocs(snap.docs || []);
@@ -2372,8 +2176,6 @@ function toggleAdminAttempts() {
     }
 }
 
-
-// ====== إدارة المستخدمين (للأدمن) ======
 function toggleAdminUsers() {
     if (!isCurrentUserAdminRole()) {
         showAlert('للأدمن فقط.', 'error');
@@ -2580,7 +2382,6 @@ function lockAdminAccess() {
     setAdminUnlocked(false);
     updateAdminGateUI();
 
-    // تنظيف أي محتوى قديم حتى لا يظهر بعد القفل
     const editor = document.getElementById('challengeQuestionsEditor');
     if (editor) editor.innerHTML = '';
 
@@ -2717,7 +2518,6 @@ function addChallengeQuestionRow() {
         correct: 0
     });
     renderChallengeQuestionsEditor();
-    // سكرول لآخر سؤال
     setTimeout(() => {
         const editor = document.getElementById('challengeQuestionsEditor');
         if (editor) editor.scrollTop = editor.scrollHeight;
@@ -2795,7 +2595,6 @@ async function saveChallengeQuestionsFromEditor() {
         return;
     }
 
-    // تخزينها كـ draft ثم حفظ
     challengeQuestionsDraft = editorQuestions;
 
     const ok = saveChallengeQuestions(editorQuestions);
@@ -2804,7 +2603,6 @@ async function saveChallengeQuestionsFromEditor() {
         return;
     }
 
-    // حفظ على Firebase عشان يظهر عند كل المستخدمين
     const cloudOk = await saveChallengeQuestionsToFirestore(editorQuestions);
 
     if (cloudOk) {
@@ -2825,7 +2623,6 @@ async function resetChallengeQuestions() {
     challengeQuestions = deepClone(DEFAULT_CHALLENGE_QUESTIONS);
     challengeQuestionsDraft = deepClone(challengeQuestions);
 
-    // ابعت الافتراضي لـ Firebase عشان الكل يرجع لنفس الأسئلة
     const cloudOk = await saveChallengeQuestionsToFirestore(challengeQuestions);
 
     if (cloudOk) {
@@ -2891,37 +2688,25 @@ function handleImportQuestionsFile(event) {
     reader.readAsText(file);
 }
 
-// عرض نوع الامتحان المحدد
 function showExamType(type) {
-    // تحديث الأزرار النشطة
     document.querySelectorAll('.exam-type-btn').forEach(btn => {
         btn.classList.remove('active');
     });
-    
-    // إضافة النشط للزر المختار
     event.target.classList.add('active');
     
-    // إخفاء جميع واجهات الامتحان
     document.querySelectorAll('.exam-interface').forEach(interface => {
         interface.classList.remove('active');
     });
     
-    // إظهار الواجهة المختارة
     document.getElementById(type + 'Exam').classList.add('active');
 }
 
-// ==========================================
-// Challenge Mode Functions
-// ==========================================
-
-// فلترة الاسم من الشتائم
 function filterName(name) {
     if (!name) return '';
     
     let filteredName = String(name).replace(/\s+/g, ' ').trim();
     const lowerName = filteredName.toLowerCase();
     
-    // التحقق من الكلمات الممنوعة
     for (const word of bannedWords) {
         const regex = new RegExp(word, 'gi');
         if (regex.test(lowerName) || regex.test(filteredName)) {
@@ -2929,25 +2714,18 @@ function filterName(name) {
         }
     }
     
-    // التحقق من الأسماء القصيرة جداً أو الطويلة جداً
     if (filteredName.length < 2 || filteredName.length > 60) {
         return null;
     }
-    
-    // رفض الأسماء التي كلها أرقام أو كلها رموز
     const onlyNumbers = /^[0-9]+$/;
     const onlySymbols = /^[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+$/;
     if (onlyNumbers.test(filteredName) || onlySymbols.test(filteredName)) {
         return null;
     }
-
-    // رفض الأسماء التي تحتوي على أرقام أو رموز
     const validName = /^[\u0600-\u06FFa-zA-Z ]+$/;
     if (!validName.test(filteredName)) {
         return null;
     }
-
-    // رفض الأسماء التي فيها أكثر من 3 حروف متكررة متتالية
     if (/(.)\1{2,}/.test(filteredName)) {
         return null;
     }
@@ -2955,11 +2733,9 @@ function filterName(name) {
     return filteredName;
 }
 
-// بدء وضع التحدي
 function startChallenge() {
     ensureCurrentUserObject();
 
-    // تحديث اسم المادة قبل بدء التحدي
     applyChallengeSubjectNameToUI();
 
     const effectiveName = getEffectiveUserName();
@@ -2970,21 +2746,16 @@ function startChallenge() {
 
     challengerName = effectiveName;
 
-    // تحديث حالة الامتحان في Firestore (للأدمن)
     markExamStartedFirestore('challenge', getChallengeSubjectName(), 'challenge');
 
-    // التأكد من توفر عدد كافٍ من الأسئلة
     if (!Array.isArray(challengeQuestions) || challengeQuestions.length < 15) {
         showAlert('أسئلة وضع التحدي غير كافية!\n\nادخل على الإعدادات وزوّد الأسئلة لحد ما تبقى 15 سؤال أو أكثر.', 'error');
         try {
             showSection('settings');
         } catch (e) {
-            // تجاهل
         }
         return;
     }
-
-    // خلط الأسئلة واختيار 15 سؤال عشوائي
     challengeQuestionsData = [...challengeQuestions];
     const shuffled = challengeQuestionsData.sort(() => Math.random() - 0.5);
     challengeQuestionsData = shuffled.slice(0, 15);
@@ -2994,7 +2765,6 @@ function startChallenge() {
     challengeTimeRemaining = getChallengeDurationSeconds();
     challengeStartTime = Date.now();
 
-    // إخفاء المقدمة وإظهار التحدي
     const intro = document.getElementById('challengeIntro');
     const container = document.getElementById('challengeContainer');
     const result = document.getElementById('challengeResult');
@@ -3002,25 +2772,19 @@ function startChallenge() {
     if (container) container.style.display = 'block';
     if (result) result.style.display = 'none';
 
-    // بدء المؤقت
     startChallengeTimer();
 
-    // عرض أول سؤال
     showChallengeQuestion();
     updateChallengeNav();
 }
 
 
-// بدء مؤقت التحدي
 function startChallengeTimer() {
     const timerDisplay = document.getElementById('timerDisplay');
     const timerDiv = document.getElementById('challengeTimer');
     
-    // إعادة تعيين الألوان
     timerDiv.classList.remove('warning', 'danger');
     timerDisplay.style.color = '';
-
-    // تأكيد عرض الوقت الحالي
     timerDisplay.textContent = formatMMSS(challengeTimeRemaining);
     
     challengeTimerInterval = setInterval(() => {
@@ -3030,19 +2794,16 @@ function startChallengeTimer() {
         const seconds = challengeTimeRemaining % 60;
         timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         
-        // تحذير عند بقاء دقيقة واحدة
         if (challengeTimeRemaining <= 60) {
             timerDiv.classList.add('warning');
             timerDisplay.style.color = '#ffaa00';
         }
         
-        // تحذير شديد عند 30 ثانية
         if (challengeTimeRemaining <= 30) {
             timerDiv.classList.add('danger');
             timerDisplay.style.color = '#ff4444';
         }
         
-        // انتهاء الوقت
         if (challengeTimeRemaining <= 0) {
             clearInterval(challengeTimerInterval);
             submitChallenge();
@@ -3050,20 +2811,16 @@ function startChallengeTimer() {
     }, 1000);
 }
 
-// عرض سؤال التحدي
 function showChallengeQuestion() {
     const question = challengeQuestionsData[currentChallengeIndex];
     const questionDiv = document.getElementById('challengeQuestion');
     const optionsDiv = document.getElementById('challengeOptions');
     const progressSpan = document.getElementById('challengeProgress');
     
-    // تحديث التقدم
     progressSpan.textContent = `${currentChallengeIndex + 1}/15`;
     
-    // عرض السؤال
     questionDiv.innerHTML = `<span class="question-number">س${currentChallengeIndex + 1}:</span> ${question.question}`;
     
-    // عرض الخيارات
     const letters = ['أ', 'ب', 'ج', 'د'];
     optionsDiv.innerHTML = question.options.map((option, i) => `
         <div class="challenge-option ${challengeAnswers[currentChallengeIndex] === i ? 'selected' : ''}" 
@@ -3076,17 +2833,13 @@ function showChallengeQuestion() {
     updateChallengeNav();
 }
 
-// اختيار إجابة في التحدي
 function selectChallengeOption(optionIndex) {
     challengeAnswers[currentChallengeIndex] = optionIndex;
     
-    // تحديث النتيجة المباشرة
     updateChallengeScore();
     
-    // إعادة عرض الخيارات
     showChallengeQuestion();
     
-    // الانتقال التلقائي للسؤال التالي بعد 500ms
     if (currentChallengeIndex < challengeQuestionsData.length - 1) {
         setTimeout(() => {
             nextChallengeQuestion();
@@ -3094,7 +2847,6 @@ function selectChallengeOption(optionIndex) {
     }
 }
 
-// تحديث النتيجة
 function updateChallengeScore() {
     let score = 0;
     Object.keys(challengeAnswers).forEach(index => {
@@ -3105,7 +2857,6 @@ function updateChallengeScore() {
     document.getElementById('challengeScore').textContent = score;
 }
 
-// السؤال التالي في التحدي
 function nextChallengeQuestion() {
     if (currentChallengeIndex < challengeQuestionsData.length - 1) {
         currentChallengeIndex++;
@@ -3113,7 +2864,6 @@ function nextChallengeQuestion() {
     }
 }
 
-// السؤال السابق في التحدي
 function prevChallengeQuestion() {
     if (currentChallengeIndex > 0) {
         currentChallengeIndex--;
@@ -3121,7 +2871,6 @@ function prevChallengeQuestion() {
     }
 }
 
-// تحديث أزرار تنقل التحدي
 function updateChallengeNav() {
     const prevBtn = document.getElementById('prevChallengeBtn');
     const nextBtn = document.getElementById('nextChallengeBtn');
@@ -3138,11 +2887,9 @@ function updateChallengeNav() {
     }
 }
 
-// إنهاء التحدي
 function submitChallenge() {
     clearInterval(challengeTimerInterval);
 
-    // حساب النتيجة
     let correctCount = 0;
     Object.keys(challengeAnswers).forEach(index => {
         if (challengeQuestionsData[index].correct === challengeAnswers[index]) {
@@ -3150,14 +2897,11 @@ function submitChallenge() {
         }
     });
 
-    // حساب الوقت المستغرق
     const totalDuration = getChallengeDurationSeconds();
     const timeTaken = Math.max(0, totalDuration - challengeTimeRemaining);
     const minutes = Math.floor(timeTaken / 60);
     const seconds = timeTaken % 60;
     const timeString = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-
-    // حفظ النتيجة
     const effectiveName = getEffectiveUserName() || ANON_USER_NAME;
     const percent = Math.round((correctCount / 15) * 100);
     const passed = percent >= 50;
@@ -3177,26 +2921,18 @@ function submitChallenge() {
 
     saveChallengeResult(result);
 
-    // عرض النتيجة
     showChallengeResult(correctCount, timeString);
 }
 
-
-// حفظ نتيجة التحدي
 function saveChallengeResult(result) {
-    // حفظ النتيجة محلياً
     let localResults = JSON.parse(localStorage.getItem('challengeResults')) || [];
     localResults.push(result);
     localStorage.setItem('challengeResults', JSON.stringify(localResults));
-
-    // تحديث بيانات المستخدم (بدون اسم)
     ensureCurrentUserObject();
     appData.currentUser.challenges.push(result);
     appData.currentUser.points += (result.score || 0) * 10;
     updateUserLevel();
     saveCurrentUserData();
-
-    // حفظ النتيجة في Firebase (Firestore)
     saveAttemptToFirestore({
         name: result.name || ANON_USER_NAME,
         examMode: 'challenge',
@@ -3216,17 +2952,12 @@ function saveChallengeResult(result) {
         }
     });
 
-    // تحديث حالة الامتحان في Firestore (للأدمن)
     markExamFinishedFirestore('challenge', getChallengeSubjectName(), 'challenge', result.percent, result.passed);
 
     showAlert('تم حفظ نتيجتك ✅', 'success');
 }
-
-// حفظ في المتصدرين العالمي
 function saveToGlobalLeaderboard(result) {
     let globalLeaderboard = JSON.parse(localStorage.getItem(GLOBAL_LEADERBOARD_KEY)) || [];
-
-    // إضافة النتيجة الجديدة
     const entry = {
         id: Date.now() + '_' + Math.random().toString(36).substr(2, 9),
         name: result.name,
@@ -3240,13 +2971,11 @@ function saveToGlobalLeaderboard(result) {
 
     globalLeaderboard.push(entry);
 
-    // ترتيب المتصدرين حسب النقاط (الأعلى أولاً) ثم الوقت (الأسرع أولاً)
     globalLeaderboard.sort((a, b) => {
         if (b.score !== a.score) return b.score - a.score;
         return a.timeSeconds - b.timeSeconds;
     });
 
-    // الاحتفاظ بـ 100 نتيجة فقط
     if (globalLeaderboard.length > 100) {
         globalLeaderboard = globalLeaderboard.slice(0, 100);
     }
@@ -3254,9 +2983,7 @@ function saveToGlobalLeaderboard(result) {
     localStorage.setItem(GLOBAL_LEADERBOARD_KEY, JSON.stringify(globalLeaderboard));
 }
 
-// عرض رسالة إنهاء التحدي
 function showCompletionMessage() {
-    // حفظ النتيجة في Firebase (Firestore)
     saveAttemptToFirestore({
         name: result.name || ANON_USER_NAME,
         examMode: 'challenge',
@@ -3274,8 +3001,6 @@ function showCompletionMessage() {
 
     showAlert('تم حفظ نتيجتك ✅', 'success');
 }
-
-// تحديث عرض المتصدرين الثلاثة الأوائل
 function updateTopThreeChampions() {
     const globalLeaderboard = loadGlobalLeaderboard();
     
@@ -3310,7 +3035,6 @@ function updateTopThreeChampions() {
     }
 }
 
-// تحديث جدول المتصدرين العالمي
 function updateChallengeLeaderboardTable() {
     const globalLeaderboard = loadGlobalLeaderboard();
     const tbody = document.getElementById('challengeLeaderboardBody');
@@ -3353,7 +3077,6 @@ function updateChallengeLeaderboardTable() {
     });
 }
 
-// الحصول على رمز الرتبة
 function getRankBadge(rank) {
     if (rank === 1) return '👑 ';
     if (rank === 2) return '🥈 ';
@@ -3361,7 +3084,6 @@ function getRankBadge(rank) {
     return '';
 }
 
-// تحميل لوحة متصدرين التحدي
 function loadChallengeLeaderboard() {
     const globalLeaderboard = loadGlobalLeaderboard();
     
@@ -3375,17 +3097,10 @@ function loadChallengeLeaderboard() {
     
     document.getElementById('noChallengeRecords').style.display = 'none';
     
-    // تحديث المتصدرين الثلاثة الأوائل
     updateTopThreeChampions();
-    
-    // تحديث إحصائيات المستخدم
     updateChallengeUserStats();
-    
-    // تحديث جدول المتصدرين
     updateChallengeLeaderboardTable();
 }
-
-// تحديث إحصائيات المستخدم في التحدي
 function updateChallengeUserStats() {
     const globalLeaderboard = loadGlobalLeaderboard();
     const currentUserName = appData.currentUser?.name || '';
@@ -3398,7 +3113,6 @@ function updateChallengeUserStats() {
         return;
     }
     
-    // تصفية نتائج المستخدم الحالي
     const userResults = globalLeaderboard.filter(r => r.name === currentUserName);
     const allLocalResults = JSON.parse(localStorage.getItem('challengeResults')) || [];
     const userLocalResults = allLocalResults.filter(r => r.name === currentUserName);
@@ -3411,18 +3125,11 @@ function updateChallengeUserStats() {
         return;
     }
     
-    // أفضل نتيجة
     const bestScore = Math.max(...userLocalResults.map(r => r.score));
     document.getElementById('userBestScore').textContent = bestScore;
-    
-    // عدد المحاولات
     document.getElementById('userTotalChallenges').textContent = userLocalResults.length;
-    
-    // متوسط النتائج
     const avgScore = Math.round(userLocalResults.reduce((sum, r) => sum + r.score, 0) / userLocalResults.length);
     document.getElementById('userAvgScore').textContent = `${avgScore}/15`;
-    
-    // المركز في المتصدرين العالمي
     const userIndex = globalLeaderboard.findIndex(r => r.name === currentUserName);
     if (userIndex >= 0) {
         document.getElementById('userChallengeRank').textContent = `#${userIndex + 1}`;
@@ -3430,10 +3137,7 @@ function updateChallengeUserStats() {
         document.getElementById('userChallengeRank').textContent = '--';
     }
 }
-
-// تصفية لوحة متصدرين التحدي
 function filterChallengeLeaderboard(filter) {
-    // تحديث الأزرار النشطة
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.remove('active');
     });
@@ -3452,27 +3156,19 @@ function filterChallengeLeaderboard(filter) {
         weekAgo.setDate(weekAgo.getDate() - 7);
         filteredResults = globalLeaderboard.filter(r => new Date(r.timestamp) >= weekAgo);
     }
-    
-    // ترتيب النتائج
     const sortedResults = filteredResults.sort((a, b) => {
         if (b.score !== a.score) return b.score - a.score;
         return a.timeSeconds - b.timeSeconds;
-    });
-    
-    // تحديث العرض
+    }); 
     updateChallengeLeaderboardTable(sortedResults.slice(0, 50));
     updateTopThreeChampions(sortedResults);
 }
-
-// عرض نتيجة التحدي
 function showChallengeResult(score, time) {
     document.getElementById('challengeContainer').style.display = 'none';
     document.getElementById('challengeResult').style.display = 'block';
     
     const resultIcon = document.getElementById('resultIcon');
     const resultTitle = document.getElementById('resultTitle');
-    
-    // تحديد الرمز والعنوان حسب النتيجة
     if (score >= 13) {
         resultIcon.textContent = '👑';
         resultTitle.textContent = 'ممتاز! أنت بطل الفضاء!';
@@ -3495,27 +3191,16 @@ function showChallengeResult(score, time) {
     document.getElementById('finalTime').textContent = time;
     document.getElementById('correctAnswers').textContent = `${score}/15`;
 }
-
-// إعادة التحدي
 function restartChallenge() {
     document.getElementById('challengeResult').style.display = 'none';
     document.getElementById('challengeIntro').style.display = 'block';
     
-    // إعادة تعيين المؤقت
     document.getElementById('timerDisplay').textContent = formatMMSS(getChallengeDurationSeconds());
     document.getElementById('challengeTimer').classList.remove('warning', 'danger');
 }
-
-// ==========================================
-// Quick Exam System
-// ==========================================
-
-// بدء اختبار سريع
 function startQuickExam() {
     startQuickExamInternal();
 }
-
-
 function startQuickExamInternal() {
     ensureCurrentUserObject();
     const effectiveName = getEffectiveUserName();
@@ -3526,11 +3211,7 @@ function startQuickExamInternal() {
     const subject = document.getElementById('subjectSelect').value;
     const difficultyButtons = document.querySelectorAll('.difficulty-btn.active');
     const difficulty = difficultyButtons.length > 0 ? difficultyButtons[0].dataset.level : 'all';
-
-    // تحديث حالة الامتحان في Firestore (للأدمن)
     markExamStartedFirestore('quick', subject, difficulty);
-    
-    // إعداد الامتحان
     appData.activeExam = {
         type: 'quick',
         subject: subject,
@@ -3543,25 +3224,19 @@ function startQuickExamInternal() {
         totalQuestions: 10
     };
     
-    // تجميع الأسئلة المناسبة
     let allQuestions = [];
     
     if (subject === 'all') {
-        // جميع المواد
         Object.values(appData.questionsBank).forEach(subjectQuestions => {
             allQuestions = allQuestions.concat(subjectQuestions);
         });
     } else {
-        // مادة محددة
         allQuestions = appData.questionsBank[subject] || [];
     }
     
-    // تصفية حسب الصعوبة إذا لم تكن "all"
     if (difficulty !== 'all') {
         allQuestions = allQuestions.filter(q => q.difficulty === difficulty);
     }
-    
-    // خلط الأسئلة واختيار 10
     allQuestions = shuffleArray(allQuestions).slice(0, 10);
     
     if (allQuestions.length === 0) {
@@ -3571,25 +3246,18 @@ function startQuickExamInternal() {
     
     appData.activeExam.questions = allQuestions;
     
-    // إخفاء إعدادات الاختبار وإظهار واجهة الامتحان
     document.querySelector('.exam-setup').style.display = 'none';
     document.getElementById('activeExam').style.display = 'block';
-    
-    // تحديث معلومات الامتحان
     document.getElementById('examTitle').textContent = 
         `اختبار ${getSubjectName(subject)} ${difficulty === 'all' ? '' : difficulty === 'easy' ? 'سهل' : difficulty === 'medium' ? 'متوسط' : 'صعب'}`;
     
     document.getElementById('currentScore').textContent = '0 نقطة';
     
-    // بدء المؤقت (حسب إعدادات الأدمن)
     startExamTimer(getQuickExamDurationSeconds());
     
-    // عرض السؤال الأول
     displayQuestion(0);
 
 }
-
-// خلط مصفوفة
 function shuffleArray(array) {
     const shuffled = [...array];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -3599,7 +3267,6 @@ function shuffleArray(array) {
     return shuffled;
 }
 
-// بدء مؤقت الامتحان
 function startExamTimer(seconds) {
     if (appData.examTimer) clearInterval(appData.examTimer);
     
@@ -3613,8 +3280,6 @@ function startExamTimer(seconds) {
         
         document.getElementById('examTimer').textContent = 
             `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        
-        // تحذير عند بقاء دقيقة واحدة
         if (timeLeft <= 60) {
             document.getElementById('examTimer').style.color = '#ff6666';
         }
@@ -3627,7 +3292,6 @@ function startExamTimer(seconds) {
     }, 1000);
 }
 
-// عرض سؤال
 function displayQuestion(questionIndex) {
     if (!appData.activeExam || questionIndex >= appData.activeExam.questions.length) {
         finishExam();
@@ -3636,24 +3300,14 @@ function displayQuestion(questionIndex) {
     
     const question = appData.activeExam.questions[questionIndex];
     appData.activeExam.currentQuestion = questionIndex;
-    
-    // تحديث تقدم الامتحان
-    document.getElementById('examProgress').textContent = `السؤال ${questionIndex + 1} من ${appData.activeExam.totalQuestions}`;
-    
-    // عرض نص السؤال
+    document.getElementById('examProgress').textContent = `السؤال ${questionIndex + 1} من ${appData.activeExam.totalQuestions}`; 
     document.getElementById('questionText').textContent = question.question;
-    
-    // عرض الخيارات
     const optionsContainer = document.getElementById('questionOptions');
-    optionsContainer.innerHTML = '';
-    
+    optionsContainer.innerHTML = ''; 
     const optionLetters = ['أ', 'ب', 'ج', 'د'];
-    
     question.options.forEach((option, index) => {
         const optionDiv = document.createElement('div');
         optionDiv.className = 'question-option';
-        
-        // التحقق إذا كان المستخدم قد أجاب على هذا السؤال من قبل
         const userAnswer = appData.activeExam.userAnswers[questionIndex];
         if (userAnswer === index) {
             optionDiv.classList.add('selected');
@@ -3668,37 +3322,24 @@ function displayQuestion(questionIndex) {
         optionsContainer.appendChild(optionDiv);
     });
     
-    // تحديث أزرار التنقل
     updateExamNavigation();
 }
-
-// اختيار إجابة
 function selectAnswer(optionIndex) {
     if (!appData.activeExam) return;
     
     const currentQuestion = appData.activeExam.currentQuestion;
     appData.activeExam.userAnswers[currentQuestion] = optionIndex;
-    
-    // إزالة التحديد من جميع الخيارات
     document.querySelectorAll('.question-option').forEach(option => {
         option.classList.remove('selected');
     });
     
-    // إضافة التحديد للخيار المختار
     document.querySelectorAll('.question-option')[optionIndex].classList.add('selected');
 }
-
-// تحديث أزرار تنقل الامتحان
 function updateExamNavigation() {
     if (!appData.activeExam) return;
-    
     const currentQuestion = appData.activeExam.currentQuestion;
     const totalQuestions = appData.activeExam.totalQuestions;
-    
-    // زر السابق
     document.getElementById('prevQuestion').disabled = currentQuestion === 0;
-    
-    // زر التالي / إنهاء
     if (currentQuestion === totalQuestions - 1) {
         document.getElementById('nextQuestion').style.display = 'none';
         document.getElementById('finishExam').style.display = 'inline-flex';
@@ -3708,7 +3349,6 @@ function updateExamNavigation() {
     }
 }
 
-// السؤال التالي
 function nextQuestion() {
     if (!appData.activeExam) return;
     
@@ -3721,39 +3361,27 @@ function nextQuestion() {
     }
 }
 
-// السؤال السابق
 function prevQuestion() {
     if (!appData.activeExam || appData.activeExam.currentQuestion === 0) return;
     
     displayQuestion(appData.activeExam.currentQuestion - 1);
 }
 
-// إنهاء الامتحان
 function finishExam() {
     if (!appData.activeExam) return;
-    
-    // إيقاف المؤقت
     if (appData.examTimer) {
         clearInterval(appData.examTimer);
     }
     
-    // حساب النتائج
     calculateExamResults();
-    
-    // إخفاء واجهة الامتحان
     document.getElementById('activeExam').style.display = 'none';
     
-    // إظهار نافذة النتائج
     showExamResults();
     
-    // إعادة عرض إعدادات الاختبار
     document.querySelector('.exam-setup').style.display = 'block';
     
-    // إعادة تعيين الامتحان النشط
     appData.activeExam = null;
 }
-
-// حساب نتائج الامتحان
 function calculateExamResults() {
     if (!appData.activeExam) return;
     
@@ -3766,20 +3394,13 @@ function calculateExamResults() {
         }
     }
     
-    // كل إجابة صحيحة = 10 نقاط
     appData.activeExam.score = correctAnswers * 10;
     appData.activeExam.correctAnswers = correctAnswers;
-    
-    // حساب الوقت المستغرق
     const endTime = new Date();
     const timeTaken = Math.floor((endTime - appData.activeExam.startTime) / 1000); // بالثواني
     appData.activeExam.timeTaken = timeTaken;
-    
-    // حفظ النتائج
     saveExamResults(correctAnswers, totalQuestions);
 }
-
-// حفظ نتائج الامتحان
 function saveExamResults(correctAnswers, totalQuestions) {
     if (!appData.currentUser) return;
     
@@ -3801,21 +3422,11 @@ function saveExamResults(correctAnswers, totalQuestions) {
         timestamp: new Date().toISOString(),
         date: new Date().toLocaleDateString('ar-EG')
     };
-    
-    // إضافة إلى سجل الامتحانات
     appData.currentUser.exams.push(examResult);
-    
-    // تحديث النقاط الإجمالية
     appData.currentUser.points += appData.activeExam.score;
-    
-    // تحديث المستوى
     updateUserLevel();
-    
-    // حفظ بيانات المستخدم المحدثة
-    saveCurrentUserData();
-
-    // حفظ النتيجة في Firebase (Firestore)
-    saveAttemptToFirestore({
+   saveCurrentUserData();
+   saveAttemptToFirestore({
         name: examResult.name,
         examMode: 'quick',
         subject: examResult.subject,
@@ -3831,50 +3442,31 @@ function saveExamResults(correctAnswers, totalQuestions) {
         source: 'web'
     }).then((ok) => {
         if (!ok) {
-            // لا نزعج الطالب برسالة كل مرة إلا عند الفشل
             console.warn('Firebase save failed for exam result');
         }
     });
-
-    // تحديث حالة الامتحان في Firestore (للأدمن)
     markExamFinishedFirestore('quick', examResult.subject, examResult.difficulty, examResult.percent, examResult.passed);
-
-    // تحميل النتائج السابقة
     loadPreviousResults();
 }
-
-// تحديث مستوى المستخدم
 function updateUserLevel() {
     if (!appData.currentUser) return;
-    
     let level = 'مبتدئ';
     if (appData.currentUser.points >= 800) level = 'خبير';
     else if (appData.currentUser.points >= 500) level = 'متقدم';
-    else if (appData.currentUser.points >= 200) level = 'متوسط';
-    
+    else if (appData.currentUser.points >= 200) level = 'متوسط';  
     appData.currentUser.level = level;
 }
-
-// عرض نتائج الامتحان
 function showExamResults() {
     if (!appData.activeExam) return;
-    
     const accuracy = Math.round((appData.activeExam.correctAnswers / appData.activeExam.totalQuestions) * 100);
-    
-    // تحديث القيم في نافذة النتائج
     document.getElementById('finalScore').textContent = appData.activeExam.score;
     document.getElementById('correctAnswers').textContent = 
         `${appData.activeExam.correctAnswers}/${appData.activeExam.totalQuestions}`;
-    
-    // تنسيق الوقت المستغرق
     const minutes = Math.floor(appData.activeExam.timeTaken / 60);
     const seconds = appData.activeExam.timeTaken % 60;
     document.getElementById('examTime').textContent = 
         `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    
     document.getElementById('accuracyRate').textContent = accuracy + '%';
-    
-    // تحديد الرسالة والرمز المناسب
     let resultTitle = '';
     let resultMessage = '';
     let resultIcon = 'fas fa-trophy';
@@ -3906,18 +3498,12 @@ function showExamResults() {
     document.getElementById('resultMessage').textContent = resultMessage;
     document.getElementById('resultTrophy').className = resultIcon;
     document.getElementById('resultTrophy').style.color = resultColor;
-    
-    // إظهار نافذة النتائج
     document.getElementById('examResultsModal').style.display = 'flex';
 }
-
-// مراجعة الإجابات
 function reviewExam() {
     closeModal('examResultsModal');
     showAlert('ميزة مراجعة الإجابات قيد التطوير، ستتوفر قريباً!', 'info');
 }
-
-// مشاركة النتائج
 function shareResults() {
     if (!appData.activeExam) return;
     
@@ -3931,7 +3517,6 @@ function shareResults() {
             url: window.location.href
         });
     } else {
-        // نسخ إلى الحافظة
         navigator.clipboard.writeText(shareText)
             .then(() => {
                 showAlert('تم نسخ النتائج إلى الحافظة! يمكنك مشاركتها الآن.', 'success');
@@ -3942,35 +3527,18 @@ function shareResults() {
     }
 }
 
-// بدء اختبار مادة محددة
 function startSubjectExam(subject) {
-    // تعيين المادة المختارة
     document.getElementById('subjectSelect').value = subject;
-    
-    // تفعيل زر الاختبار السريع
     document.querySelectorAll('.exam-type-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelector('[onclick="showExamType(\'quick\')"]').classList.add('active');
-    
-    // إظهار قسم الامتحانات
     showSection('exams');
-    
-    // تفعيل مستوى متوسط افتراضياً
     document.querySelectorAll('.difficulty-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelector('[data-level="medium"]').classList.add('active');
-    
-    // إظهار قسم الاختبار السريع
     showExamType('quick');
     
     showAlert(`تم تحضير اختبار ${getSubjectName(subject)} لك. اضغط على "ابدأ الاختبار السريع" للبدء!`, 'info');
 }
-
-// فتح المحاضرات (بدون Firebase) — بيقرأ ملفات PDF من السيرفر داخل:
-// lectures/<folderName>/*.pdf
-// أسماء الفولدرات المطلوبة: math0 math1 physics elcronecs it computing history computer law en
-
 const LECTURES_BASE_DIR = 'lectures';
-
-// mapping بين كود المادة في الموقع واسم فولدر المحاضرات على السيرفر
 const LECTURE_SUBJECT_FOLDER_MAP = {
     'math-zero': 'math0',
     'math': 'math1',
@@ -3981,7 +3549,6 @@ const LECTURE_SUBJECT_FOLDER_MAP = {
     'computing-laws': 'law',
     'english': 'en',
 
-    // اختياري (لو ضفت مواد بالكود ده في الـ HTML لاحقاً)
     'math0': 'math0',
     'math1': 'math1',
     'computing': 'computing',
@@ -3996,7 +3563,6 @@ const __lecturesState = {
     folder: '',
     files: [],
     token: 0,
-    // pdf viewer state
     pdfDoc: null,
     pageNum: 1,
     pageCount: 1,
@@ -4015,14 +3581,10 @@ function openLectures(subject) {
 
         __lecturesState.subject = String(subject || '');
         __lecturesState.folder = mapSubjectToLecturesFolder(subject);
-
-        // reset viewer state
         __lecturesState.pdfDoc = null;
         __lecturesState.pageNum = 1;
         __lecturesState.pageCount = 1;
         __lecturesState.zoomFactor = 1.0;
-
-        // UI
         const modal = document.getElementById('lecturesModal');
         const title = document.getElementById('lecturesSubjectTitle');
         const hint = document.getElementById('lecturesFolderHint');
@@ -4032,8 +3594,6 @@ function openLectures(subject) {
 
         showLecturesListView();
         modal.style.display = 'flex';
-
-        // تحميل القائمة
         loadLecturesList(__lecturesState.folder);
     } catch (e) {
         console.error(e);
@@ -4042,7 +3602,6 @@ function openLectures(subject) {
 }
 
 function closeLecturesModal() {
-    // اقفل المودال + نظّف الـ PDF
     try {
         if (__lecturesState.pdfDoc) {
             try { __lecturesState.pdfDoc.destroy?.(); } catch (e) {}
@@ -4091,8 +3650,6 @@ function ensureLecturesModalExists() {
         </div>
 
         <div class="modal-body lectures-body">
-
-          <!-- List View -->
           <div id="lecturesListView">
             <div class="lectures-toolbar">
               <div class="lectures-path" id="lecturesFolderHint"></div>
@@ -4104,8 +3661,6 @@ function ensureLecturesModalExists() {
             <div class="lectures-status" id="lecturesStatus"></div>
             <div class="lectures-files" id="lecturesFiles"></div>
           </div>
-
-          <!-- Viewer View -->
           <div id="lecturesViewerView" style="display:none;">
             <div class="viewer-topbar">
               <button class="control-btn" type="button" id="viewerBackBtn">
@@ -4153,21 +3708,15 @@ function ensureLecturesModalExists() {
     `;
 
     document.body.appendChild(modal);
-
-    // close button
     document.getElementById('lecturesCloseBtn')?.addEventListener('click', closeLecturesModal);
-
-    // click outside content closes
     modal.addEventListener('click', (e) => {
         if (e.target === modal) closeLecturesModal();
     });
 
-    // refresh
     document.getElementById('lecturesRefreshBtn')?.addEventListener('click', () => {
         loadLecturesList(__lecturesState.folder, true);
     });
 
-    // back from viewer
     document.getElementById('viewerBackBtn')?.addEventListener('click', () => {
         try {
             if (__lecturesState.pdfDoc) {
@@ -4178,7 +3727,6 @@ function ensureLecturesModalExists() {
         showLecturesListView();
     });
 
-    // paging
     document.getElementById('prevPdfPageBtn')?.addEventListener('click', () => {
         if (!__lecturesState.pdfDoc) return;
         if (__lecturesState.pageNum <= 1) return;
@@ -4193,7 +3741,6 @@ function ensureLecturesModalExists() {
         renderPdfPage(__lecturesState.pageNum);
     });
 
-    // zoom
     document.getElementById('zoomInBtn')?.addEventListener('click', () => {
         if (!__lecturesState.pdfDoc) return;
         __lecturesState.zoomFactor = Math.min(3, __lecturesState.zoomFactor * 1.12);
@@ -4206,7 +3753,6 @@ function ensureLecturesModalExists() {
         renderPdfPage(__lecturesState.pageNum);
     });
 
-    // keyboard (Esc / arrows)
     document.addEventListener('keydown', (e) => {
         const modalEl = document.getElementById('lecturesModal');
         if (!modalEl || modalEl.style.display !== 'flex') return;
@@ -4284,7 +3830,6 @@ async function loadLecturesList(folder, force = false) {
     try {
         const list = await listPdfFilesFromFolder(folder, force);
 
-        // لو فتح مادة تانية بسرعة
         if (token !== __lecturesState.token) return;
 
         __lecturesState.files = list;
@@ -4344,14 +3889,11 @@ async function listPdfFilesFromFolder(folder, force = false) {
     const safeFolder = String(folder || '').replace(/^\/*/, '').replace(/\/*$/, '');
     const basePath = `${LECTURES_BASE_DIR}/${safeFolder}/`;
     const baseUrl = new URL(basePath, window.location.href).toString();
-
-    // 1) حاول manifest.json (اختياري)
     try {
         const manifestUrl = new URL('manifest.json', baseUrl).toString();
         const r = await fetch(manifestUrl, { cache: force ? 'no-store' : 'default' });
         if (r.ok) {
             const data = await r.json();
-            // يقبل: ["a.pdf","b.pdf"] أو {files:[...]}
             const arr = Array.isArray(data) ? data : (Array.isArray(data?.files) ? data.files : []);
             const out = arr
                 .map(x => String(x || '').trim())
@@ -4360,10 +3902,7 @@ async function listPdfFilesFromFolder(folder, force = false) {
             return Array.from(new Set(out));
         }
     } catch (e) {
-        // تجاهل
     }
-
-    // 2) حاول تقرأ directory listing HTML
     const res = await fetch(baseUrl, { cache: force ? 'no-store' : 'default' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const html = await res.text();
@@ -4373,7 +3912,6 @@ async function listPdfFilesFromFolder(folder, force = false) {
 }
 
 function parseDirectoryListingForPdfs(html, baseUrl) {
-    // يدعم Apache/Nginx autoindex ومعظم listings
     const doc = new DOMParser().parseFromString(String(html || ''), 'text/html');
     const anchors = Array.from(doc.querySelectorAll('a[href]'));
     const pdfs = [];
@@ -4381,31 +3919,22 @@ function parseDirectoryListingForPdfs(html, baseUrl) {
     for (const a of anchors) {
         const raw = a.getAttribute('href');
         if (!raw) continue;
-
-        // تجاهل parent link / sort links
         if (raw === '../' || raw.startsWith('?')) continue;
 
         const clean = raw.split('?')[0].split('#')[0];
         if (!clean.toLowerCase().endsWith('.pdf')) continue;
-
-        // resolve to absolute URL
         try {
             const u = new URL(clean, baseUrl).toString();
             pdfs.push(u);
         } catch (e) {}
     }
 
-    // ترتيب لطيف (A-Z)
     pdfs.sort((a, b) => a.localeCompare(b, 'en'));
     return pdfs;
 }
 
 async function ensurePdfJsLoaded() {
-    // لو موجودة بالفعل
     if (window.pdfjsLib && window.pdfjsLib.getDocument) return;
-
-    // ملاحظة: في إصدارات PDF.js الحديثة، ملف build/ ممكن يكون ESM ومايطلعش pdfjsLib كـ global.
-    // لذلك بنجرب legacy/build أولاً (مناسب للـ CDN) ثم fallback.
     const ver = '5.4.530'; // stable (late 2025)
 
     const candidates = [
@@ -4413,7 +3942,6 @@ async function ensurePdfJsLoaded() {
             lib: `https://cdn.jsdelivr.net/npm/pdfjs-dist@${ver}/legacy/build/pdf.min.js`,
             worker: `https://cdn.jsdelivr.net/npm/pdfjs-dist@${ver}/legacy/build/pdf.worker.min.js`,
         },
-        // fallback قديم جاهز كـ UMD globals
         {
             lib: `https://cdn.jsdelivr.net/npm/pdfjs-dist-legacy/pdf.min.js`,
             worker: `https://cdn.jsdelivr.net/npm/pdfjs-dist-legacy/pdf.worker.min.js`,
@@ -4421,8 +3949,6 @@ async function ensurePdfJsLoaded() {
     ];
 
     let lastErr = null;
-
-    // نظّف أي بقايا سابقة
     try {
         const old = document.getElementById('pdfjsLibScript');
         if (old && !old.__keep) old.remove();
@@ -4430,10 +3956,7 @@ async function ensurePdfJsLoaded() {
 
     for (const c of candidates) {
         try {
-            // حمّل المكتبة
             await loadScriptOnce(c.lib, 'pdfjsLibScript');
-
-            // بعض الـ builds بتطلعها في أماكن مختلفة
             window.pdfjsLib =
                 window.pdfjsLib ||
                 window['pdfjs-dist/build/pdf'] ||
@@ -4441,21 +3964,16 @@ async function ensurePdfJsLoaded() {
                 (window.exports && window.exports.pdfjsLib);
 
             if (window.pdfjsLib && window.pdfjsLib.getDocument) {
-                // worker
                 try {
                     window.pdfjsLib.GlobalWorkerOptions.workerSrc = c.worker;
                 } catch (e) {}
-                // علِّم السكربت إنه ناجح
                 const s = document.getElementById('pdfjsLibScript');
                 if (s) s.__keep = true;
                 return;
             }
-
-            // لو اتحمل لكن مافيش global، جرّب اللي بعده
             lastErr = new Error('PDF.js loaded but pdfjsLib global not found');
             const s = document.getElementById('pdfjsLibScript');
             if (s && !s.__keep) s.remove();
-            // امسح أي references
             try { delete window.pdfjsLib; } catch (e) {}
         } catch (e) {
             lastErr = e;
@@ -4518,11 +4036,7 @@ function fallbackOpenPdfInIframe(fileUrl, err) {
     try {
         const iframe = ensurePdfIframe();
         if (!iframe) return false;
-
-        // تعطيل وضع PDF.js
         __lecturesState.pdfDoc = null;
-
-        // تحديث واجهة الصفحات (مش هتشتغل مع iframe)
         const pn = document.getElementById('pdfPageNum');
         const pc = document.getElementById('pdfPageCount');
         if (pn) pn.textContent = '-';
@@ -4534,8 +4048,6 @@ function fallbackOpenPdfInIframe(fileUrl, err) {
 
         iframe.style.display = 'block';
         iframe.src = fileUrl;
-
-        // رسالة مفيدة بدل "مش هقدر" بدون تفاصيل
         showAlert('تعذّر تشغيل عارض PDF داخل الموقع، فتم فتح الملف داخل عارض المتصفح.', 'info');
         return true;
     } catch (e) {
@@ -4548,8 +4060,6 @@ function fallbackOpenPdfInIframe(fileUrl, err) {
 async function openLecturePdf(fileUrl) {
     try {
         showLecturesViewerView();
-
-        // تأكد إننا في وضع PDF.js (مش iframe)
         const __iframe = ensurePdfIframe();
         if (__iframe) {
             __iframe.style.display = 'none';
@@ -4575,8 +4085,6 @@ async function openLecturePdf(fileUrl) {
 
         await ensurePdfJsLoaded();
         if (!window.pdfjsLib) throw new Error('pdfjsLib not available');
-
-        // destroy previous
         try {
             if (__lecturesState.pdfDoc) {
                 try { __lecturesState.pdfDoc.destroy?.(); } catch (e) {}
@@ -4585,7 +4093,6 @@ async function openLecturePdf(fileUrl) {
 
         let pdf = null;
 
-// جرّب عادي (Worker)
 try {
     const loadingTask = window.pdfjsLib.getDocument({ url: fileUrl });
     pdf = await loadingTask.promise;
@@ -4603,8 +4110,6 @@ try {
         __lecturesState.pageCount = pdf.numPages || 1;
         __lecturesState.pageNum = 1;
         __lecturesState.zoomFactor = 1.0;
-
-        // update counters
         const pn = document.getElementById('pdfPageNum');
         const pc = document.getElementById('pdfPageCount');
         if (pn) pn.textContent = '1';
@@ -4634,8 +4139,6 @@ async function renderPdfPage(pageNum) {
     if (!canvas || !wrap) return;
 
     const page = await pdf.getPage(pageNum);
-
-    // fit-to-width * zoomFactor
     const baseViewport = page.getViewport({ scale: 1 });
     const availableWidth = Math.max(280, (wrap.clientWidth || 800) - 24); // padding
     const fitScale = availableWidth / baseViewport.width;
@@ -4655,20 +4158,12 @@ async function renderPdfPage(pageNum) {
     const pc = document.getElementById('pdfPageCount');
     if (pn) pn.textContent = String(pageNum);
     if (pc) pc.textContent = String(__lecturesState.pageCount);
-
-    // enable/disable buttons
     const prevBtn = document.getElementById('prevPdfPageBtn');
     const nextBtn = document.getElementById('nextPdfPageBtn');
     if (prevBtn) prevBtn.disabled = pageNum <= 1;
     if (nextBtn) nextBtn.disabled = pageNum >= __lecturesState.pageCount;
 }
 
-
-// ==========================================
-// AI Assistant System
-// ==========================================
-
-// إرسال سؤال للمساعد الذكي
 function sendAIQuestion() {
     const questionInput = document.getElementById('aiQuestionInput');
     const question = questionInput.value.trim();
@@ -4679,27 +4174,13 @@ function sendAIQuestion() {
         return;
     }
     
-    // إضافة سؤال المستخدم إلى المحادثة
     addUserMessage(question);
-    
-    // مسح حقل الإدخال
     questionInput.value = '';
-    
-    // إظهار مؤشر التفكير
     showThinkingIndicator();
-    
-    // محاكاة رد المساعد الذكي
     setTimeout(() => {
-        // إزالة مؤشر التفكير
         removeThinkingIndicator();
-        
-        // إجابة ذكية بناءً على السؤال
         const aiResponse = generateAIResponse(question);
-        
-        // إضافة رد المساعد
         addAIMessage(aiResponse);
-        
-        // حفظ في سجل المحادثة
         appData.aiChatHistory.push({
             question: question,
             answer: aiResponse,
@@ -4707,8 +4188,6 @@ function sendAIQuestion() {
         });
     }, 1500);
 }
-
-// إضافة رسالة المستخدم
 function addUserMessage(message) {
     const chatMessages = document.getElementById('chatMessages');
     
@@ -4728,8 +4207,6 @@ function addUserMessage(message) {
     chatMessages.appendChild(messageDiv);
     scrollToBottom();
 }
-
-// إضافة رسالة المساعد الذكي
 function addAIMessage(message) {
     const chatMessages = document.getElementById('chatMessages');
     
@@ -4749,8 +4226,6 @@ function addAIMessage(message) {
     chatMessages.appendChild(messageDiv);
     scrollToBottom();
 }
-
-// إظهار مؤشر التفكير
 function showThinkingIndicator() {
     const chatMessages = document.getElementById('chatMessages');
     
@@ -4775,26 +4250,19 @@ function showThinkingIndicator() {
     scrollToBottom();
 }
 
-// إزالة مؤشر التفكير
 function removeThinkingIndicator() {
     const thinkingDiv = document.getElementById('thinkingIndicator');
     if (thinkingDiv) {
         thinkingDiv.remove();
     }
 }
-
-// التمرير لأسفل المحادثة
 function scrollToBottom() {
     const chatMessages = document.getElementById('chatMessages');
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// توليد رد المساعد الذكي
 function generateAIResponse(question) {
-    // تحليل السؤال لتحديد المجال
     const lowerQuestion = question.toLowerCase();
-    
-    // إجابات مسبقة للأسئلة الشائعة
     if (lowerQuestion.includes('نيوتن') || lowerQuestion.includes('قانون')) {
         return `بناءً على سؤالك عن القوانين الفيزيائية:
 
@@ -4902,18 +4370,11 @@ console.log(النتيجة); // 8
     }
     
     else {
-        // رد عام إذا لم يتطابق مع المواضيع المعروفة
         return `شكراً لسؤالك! 🤖
 
 سؤالك: "${question}"
 
 أنا مساعد ذكي متخصص في المواد الدراسية لكلية الحاسبات والمعلومات. يمكنني مساعدتك في:
-
-<strong>🔬 الفيزياء:</strong> قوانين نيوتن، الحركة، الطاقة، الكهرباء
-<strong>🧮 الرياضيات:</strong> المعادلات، التفاضل، التكامل، الجبر
-<strong>💻 البرمجة:</strong> أساسيات البرمجة، الخوارزميات، هياكل البيانات
-<strong>🔌 الإلكترونيات:</strong> الدايود، الترانزستور، الدوائر المتكاملة
-<strong>🌐 الشبكات:</strong> أساسيات الشبكات، البروتوكولات، الأمان
 
 يمكنك صياغة سؤالك بشكل أكثر تحديداً للحصول على إجابة أدق، أو اختر أحد المواضيع المقترحة على اليسار.
 
@@ -4921,36 +4382,30 @@ console.log(النتيجة); // 8
     }
 }
 
-// سؤال مباشر من المواضيع المقترحة
 function askAIQuestion(question) {
     document.getElementById('aiQuestionInput').value = question;
     sendAIQuestion();
 }
 
-// مسح المحادثة
 function clearChat() {
     if (confirm('هل تريد مسح كل محادثتك مع المساعد الذكي؟')) {
         const chatMessages = document.getElementById('chatMessages');
         
-        // الاحتفاظ على رسالة الترحيب الأولى فقط
         const welcomeMessage = chatMessages.querySelector('.ai-message');
         chatMessages.innerHTML = '';
         
         if (welcomeMessage) {
             chatMessages.appendChild(welcomeMessage);
         } else {
-            // إضافة رسالة ترحيب إذا لم تكن موجودة
             addAIMessage('مرحباً! أنا المساعد الذكي للفضاء التعليمي. 👨‍🚀<br>كيف يمكنني مساعدتك اليوم في دراستك؟ يمكنك سؤالي عن أي موضوع في المنهج الدراسي.');
         }
-        
-        // مسح سجل المحادثة
+    
         appData.aiChatHistory = [];
         
         showAlert('تم مسح المحادثة بنجاح', 'success');
     }
 }
 
-// إظهار تنبيه
 function showAlert(message, type = 'info') {
     const alertContainer = document.getElementById('alertContainer');
     
@@ -4962,8 +4417,7 @@ function showAlert(message, type = 'info') {
     `;
     
     alertContainer.appendChild(alertDiv);
-    
-    // إزالة التنبيه بعد 5 ثوانٍ
+
     setTimeout(() => {
         alertDiv.style.animation = 'slideUp 0.3s ease';
         setTimeout(() => {
@@ -4972,23 +4426,11 @@ function showAlert(message, type = 'info') {
     }, 5000);
 }
 
-// ==========================================
-// تهيئة الصفحة
-// ==========================================
-
-// دالة التأكد من أن جميع المستخدمين يرون نفس البيانات
 function syncLeaderboard() {
-    // هذه الدالة تضمن أن جميع المستخدمين في نفس المتصفح
-    // يرون نفس بيانات المتصدرين (باستخدام localStorage)
-    
-    // عند أي تحديث للنتائج، يتم تحديث العرض للجميع
-    window.addEventListener('storage', function(e) {
+window.addEventListener('storage', function(e) {
         if (e.key === GLOBAL_LEADERBOARD_KEY) {
-            // تحديث العرض تلقائياً عند تغيير البيانات
             updateTopThreeChampions();
             updateChallengeLeaderboardTable();
-            
-            // إظهار إشعار بالتحديث
             const lbSection = document.getElementById('leaderboardSection');
             if (lbSection && lbSection.classList.contains('active')) {
                 showAlert('تم تحديث قائمة المتصدرين!', 'info');
@@ -4997,44 +4439,34 @@ function syncLeaderboard() {
     });
 }
 
-// تهيئة أزرار نوع الامتحان
 document.addEventListener('DOMContentLoaded', function() {
-    // أزرار نوع الامتحان
     document.querySelectorAll('.exam-type-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            // إزالة النشط من جميع الأزرار
             document.querySelectorAll('.exam-type-btn').forEach(b => {
                 b.classList.remove('active');
             });
             
-            // إضافة النشط للزر المختار
             this.classList.add('active');
             
-            // إخفاء جميع واجهات الامتحان
             document.querySelectorAll('.exam-interface').forEach(interface => {
                 interface.classList.remove('active');
             });
             
-            // إظهار الواجهة المختارة
             const examType = this.getAttribute('onclick').includes('challenge') ? 'challenge' : 'quick';
             document.getElementById(examType + 'Exam').classList.add('active');
         });
     });
     
-    // أزرار مستوى الصعوبة
     document.querySelectorAll('.difficulty-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            // إزالة النشط من جميع الأزرار
             document.querySelectorAll('.difficulty-btn').forEach(b => {
                 b.classList.remove('active');
             });
             
-            // إضافة النشط للزر المختار
             this.classList.add('active');
         });
     });
     
-    // السماح بإرسال سؤال AI بالضغط على Ctrl+Enter
     const aiInput = document.getElementById('aiQuestionInput');
     if (aiInput) {
         aiInput.addEventListener('keydown', function(e) {
@@ -5045,7 +4477,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // دخول الأدمن (Enter للتأكيد)
     const adminCodeInput = document.getElementById('adminCodeInput');
 
     if (adminCodeInput) {
@@ -5057,19 +4488,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ضبط قفل الأدمن في الإعدادات من البداية
     updateAdminGateUI();
-    
-    // استدعاء دالة التزامن عند التحميل
     syncLeaderboard();
 });
-
-// ==========================================
-// Background Music (Header button: start music)
-// ==========================================
-// ملفات الموسيقى المتوقعة داخل مجلد المشروع: /music
-// أمثلة: music/1.mp3, music/2.mp3, ... (يدعم mp3 / m4a / ogg / wav)
-
 let __musicAudioEl = null;
 let __musicIsRunning = false;
 let __musicCurrentIndex = 1;
@@ -5092,10 +4513,7 @@ function initMusicPlayer() {
         document.body.appendChild(__musicAudioEl);
     }
 
-    // إعدادات افتراضية
     try { __musicAudioEl.volume = 0.7; } catch (e) {}
-
-    // لما الأغنية تخلص نجيب اللي بعدها
     __musicAudioEl.addEventListener('ended', () => {
         if (!__musicIsRunning) return;
         __musicTryLoadAndPlay(__musicCurrentIndex + 1, 0);
@@ -5140,8 +4558,6 @@ function __musicTryLoadAndPlay(index, extIndex) {
     const audio = __musicAudioEl;
     const ext = __musicExtensions[extIndex] || 'mp3';
     const url = __musicBuildUrl(index, ext);
-
-    // تنظيف listeners قبل ما نضيف جديد
     const cleanup = () => {
         try { audio.removeEventListener('loadedmetadata', onReady); } catch (e) {}
         try { audio.removeEventListener('canplay', onReady); } catch (e) {}
@@ -5172,14 +4588,10 @@ function __musicTryLoadAndPlay(index, extIndex) {
     const onErr = () => {
         cleanup();
         if (!__musicIsRunning) return;
-
-        // جرّب امتداد تاني لنفس الرقم
         if (extIndex + 1 < __musicExtensions.length) {
             __musicTryLoadAndPlay(index, extIndex + 1);
             return;
         }
-
-        // كل الامتدادات فشلت -> نروح للرقم اللي بعده
         __musicMissingStreak += 1;
 
         if (__musicMissingStreak >= __musicMaxMissingStreak) {
@@ -5206,8 +4618,6 @@ function __musicTryLoadAndPlay(index, extIndex) {
         onErr();
     }
 }
-
-// زر الهيدر: start music
 function toggleMusic() {
     initMusicPlayer();
 
@@ -5224,15 +4634,9 @@ function toggleMusic() {
 
     __musicTryLoadAndPlay(__musicCurrentIndex, 0);
 }
-
-// لو الزر موجود اتأكد إن نصه مضبوط عند التحميل
 document.addEventListener('DOMContentLoaded', () => {
     __musicSetBtnState(false);
 });
-
-
-// ==========================================
-// تحكم متقدم في الموسيقى: ضغطه طويلة على زر start music
 let __musicPopoverEl = null;
 let __musicPopoverOpen = false;
 let __musicPopoverScrubbing = false;
@@ -5249,8 +4653,6 @@ function __musicEnsureRunning() {
     __musicBindAudioPopoverEvents();
 
     if (__musicIsRunning) return true;
-
-    // بدء التشغيل من آخر رقم معروف أو 1
     __musicIsRunning = true;
     __musicMissingStreak = 0;
     if (!Number.isInteger(__musicCurrentIndex) || __musicCurrentIndex < 1) {
@@ -5275,8 +4677,6 @@ function __musicSeekBy(deltaSeconds) {
 
     const audio = __musicAudioEl;
     if (!audio) return;
-
-    // لو مش شغّال هنشغّل الأول (الـ seek هيعتبر interaction)
     if (!__musicIsRunning) {
         __musicEnsureRunning();
     }
@@ -5373,12 +4773,9 @@ function __musicCreatePopoverIfNeeded() {
         });
 
         slider.addEventListener('change', () => {
-            // ادي فرصة بسيطة للـ timeupdate يمسك بعد ما المستخدم يسيب السلايدر
             setTimeout(() => { __musicPopoverScrubbing = false; }, 120);
         });
     }
-
-    // إغلاق عند الضغط برا
     if (!window.__musicOutsideCloseBound) {
         window.__musicOutsideCloseBound = true;
 
@@ -5417,8 +4814,6 @@ function __musicPositionPopover() {
     const rect = btn.getBoundingClientRect();
     const padding = 10;
     const gap = 10;
-
-    // في RTL: خليها قريبة من يمين الزر
     const right = Math.max(padding, (window.innerWidth - rect.right));
     let top = rect.bottom + gap;
 
@@ -5426,8 +4821,6 @@ function __musicPositionPopover() {
     __musicPopoverEl.style.left = 'auto';
 
     const estimatedHeight = __musicPopoverEl.offsetHeight || 240;
-
-    // لو هتنزل برا الشاشة من تحت، اطلع لفوق
     const placeAbove = (top + estimatedHeight + padding > window.innerHeight);
     if (placeAbove) {
         top = Math.max(padding, rect.top - estimatedHeight - gap);
@@ -5444,8 +4837,6 @@ function __musicOpenPopover() {
     __musicPositionPopover();
     __musicPopoverEl.classList.add('open');
     __musicPopoverOpen = true;
-
-    // تحديث UI (حتى لو الموسيقى مش شغالة)
     __musicUpdatePopoverUI();
 }
 
@@ -5509,8 +4900,6 @@ function __musicBindLongPressOnNavBtn() {
     if (!btn || btn.__musicLongPressBound) return;
 
     btn.__musicLongPressBound = true;
-
-    // لو لسه في onclick من HTML شيله
     try { btn.onclick = null; btn.removeAttribute('onclick'); } catch (e) {}
 
     const LONG_PRESS_MS = 520;
@@ -5527,8 +4916,6 @@ function __musicBindLongPressOnNavBtn() {
     const startPress = (e) => {
         longPressed = false;
         clearPress();
-
-        // منع الـ context menu على الموبايل
         if (e && typeof e.preventDefault === 'function') e.preventDefault();
 
         pressTimer = setTimeout(() => {
@@ -5541,24 +4928,18 @@ function __musicBindLongPressOnNavBtn() {
         clearPress();
 
         if (longPressed) {
-            // ما تشغلش / توقفش الموسيقى بعد ضغطه طويلة
             if (e && typeof e.preventDefault === 'function') e.preventDefault();
             if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
             return;
         }
-
-        // ضغطه قصيرة => تشغيل/إيقاف
         toggleMusic();
     };
-
-    // Pointer Events (أفضل)
     if (window.PointerEvent) {
         btn.addEventListener('pointerdown', startPress, { passive: false });
         btn.addEventListener('pointerup', endPress, { passive: false });
         btn.addEventListener('pointercancel', clearPress);
         btn.addEventListener('pointerleave', clearPress);
     } else {
-        // fallback
         btn.addEventListener('mousedown', startPress);
         btn.addEventListener('mouseup', endPress);
         btn.addEventListener('mouseleave', clearPress);
@@ -5567,8 +4948,6 @@ function __musicBindLongPressOnNavBtn() {
         btn.addEventListener('touchend', endPress, { passive: false });
         btn.addEventListener('touchcancel', clearPress);
     }
-
-    // Keyboard accessibility
     btn.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
@@ -5577,7 +4956,6 @@ function __musicBindLongPressOnNavBtn() {
     });
 
     btn.addEventListener('contextmenu', (e) => {
-        // منع القائمة اللي بتظهر في الموبايل مع الضغط الطويل
         if (!__musicPopoverOpen) e.preventDefault();
     });
 }
@@ -5585,20 +4963,12 @@ function __musicBindLongPressOnNavBtn() {
 document.addEventListener('DOMContentLoaded', () => {
     __musicBindLongPressOnNavBtn();
 });
-
-
-// ==========================================
-// Summary Overlay (علشان الموسيقى متقفش لما تفتح صفحة الملخصات أو أي روابط)
-// الفكرة: بدل ما نروح لـ summary.html في نفس التبويب (وده بيوقف الصوت)،
- // بنفتحها داخل Overlay + iframe فوق الصفحة الرئيسية، فالموسيقى تفضل شغالة.
-
 let __summaryOverlayEl = null;
 let __summaryOverlayFrame = null;
 let __summaryOverlayOpen = false;
 let __summaryOverlayLastFocus = null;
 
 function __summaryShouldKeepDefaultClick(e) {
-    // لو المستخدم عايز يفتح في تبويب جديد (Ctrl/⌘/Shift/عجلة الماوس) نخليه كما هو
     if (!e) return false;
     return !!(e.ctrlKey || e.metaKey || e.shiftKey || e.altKey || e.button === 1);
 }
@@ -5637,21 +5007,16 @@ function __summaryEnsureOverlay() {
     frame.className = 'summary-overlay-frame';
     frame.id = 'summaryOverlayFrame';
     frame.setAttribute('loading', 'lazy');
-
-    // لو الصفحة داخل iframe فيها روابط خارجية، افتحها في تبويب جديد علشان مشاكل الـ iframe (X-Frame-Options)
     frame.addEventListener('load', () => {
         try {
             const doc = frame.contentDocument;
             if (!doc) return;
-            // امنع تكرار البايند كل مرة
             if (doc.__summaryLinkBound) return;
             doc.__summaryLinkBound = true;
 
             doc.addEventListener('click', (ev) => {
                 const a = ev.target && ev.target.closest ? ev.target.closest('a[href]') : null;
                 if (!a) return;
-
-                // لو already target=_blank سيبه
                 const targetAttr = String(a.getAttribute('target') || '').toLowerCase();
                 if (targetAttr === '_blank') return;
 
@@ -5664,35 +5029,26 @@ function __summaryEnsureOverlay() {
                 } catch {
                     return;
                 }
-
-                // لو خارج الدومين افتح في تبويب جديد
                 if (url.origin && url.origin !== window.location.origin) {
-                    // حافظ على اختيارات المستخدم (فتح تبويب جديد يدوي)
                     if (__summaryShouldKeepDefaultClick(ev)) return;
 
                     ev.preventDefault();
                     try {
                         window.open(url.href, '_blank', 'noopener');
                     } catch {
-                        // fallback
                         window.location.href = url.href;
                     }
                 }
             }, true);
         } catch (e) {
-            // cross-origin: ما نقدرش نلمس DOM
         }
     });
 
     panel.appendChild(header);
     panel.appendChild(frame);
-
-    // إغلاق عند الضغط على الخلفية
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) __summaryCloseOverlay();
     });
-
-    // إغلاق بـ ESC
     document.addEventListener('keydown', (e) => {
         if (!__summaryOverlayOpen) return;
         if (e.key === 'Escape') __summaryCloseOverlay();
@@ -5723,8 +5079,6 @@ function __summaryOpenOverlay(url = 'summary.html') {
             __summaryOverlayFrame.setAttribute('src', String(url));
         }
     }
-
-    // حط فوكس للـ iframe بعد فتحه
     setTimeout(() => {
         try { __summaryOverlayFrame && __summaryOverlayFrame.focus(); } catch {}
     }, 50);
@@ -5744,7 +5098,6 @@ function __summaryCloseOverlay() {
 }
 
 function __summaryBindSummaryLinks() {
-    // كل روابط الملخصات في الصفحة الرئيسية (index.html)
     const links = document.querySelectorAll('a[href="summary.html"], a[href="./summary.html"]');
     if (!links || links.length === 0) return;
 
@@ -5756,7 +5109,6 @@ function __summaryBindSummaryLinks() {
             if (__summaryShouldKeepDefaultClick(e)) return;
 
             e.preventDefault();
-            // افتح داخل Overlay بدل التنقل
             __summaryOpenOverlay('summary.html');
         });
     });
@@ -5765,15 +5117,6 @@ function __summaryBindSummaryLinks() {
 document.addEventListener('DOMContentLoaded', () => {
     __summaryBindSummaryLinks();
 });
-
-
-
-// ==========================================
-// Mobile Navbar (قائمة موبايل مقفولة + زر 3 شرط)
-// - مقفولة افتراضياً على الشاشات الصغيرة
-// - بتفتح/تقفل بزرار القائمة فقط
-// - مابتتقفلش لوحدها لما تختار قسم
-
 function __setMobileNavbarOpen(isOpen) {
     const navbar = document.querySelector('.space-navbar');
     const btn = document.getElementById('mobileMenuBtn');
@@ -5793,17 +5136,12 @@ function __bindMobileNavbarToggle() {
     const btn = document.getElementById('mobileMenuBtn');
     const navbar = document.querySelector('.space-navbar');
     if (!btn || !navbar) return;
-
-    // تأكد إنها مقفولة افتراضياً
     __setMobileNavbarOpen(false);
-
     btn.addEventListener('click', (e) => {
         e.preventDefault();
         const isOpen = navbar.classList.contains('menu-open');
         __setMobileNavbarOpen(!isOpen);
     });
-
-    // لو خرجنا من وضع الموبايل، اقفلها (علشان ما تفضل class موجودة)
     window.addEventListener('resize', () => {
         const isMobile = window.matchMedia('(max-width: 768px)').matches;
         if (!isMobile) __setMobileNavbarOpen(false);
