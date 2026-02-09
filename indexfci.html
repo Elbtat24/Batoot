@@ -13,18 +13,13 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body class="space-theme">
-    <!-- النجوم المتحركة في الخلفية -->
     <div class="stars"></div>
     <div class="stars2"></div>
     <div class="stars3"></div>
-    
-    <!-- الكواكب العائمة -->
     <div class="planet planet-1"></div>
     <div class="planet planet-2"></div>
     <div class="planet planet-3"></div>
     
-    
-    <!-- شاشة تسجيل الدخول (Firebase Auth) -->
     <div id="authModal" class="modal auth-modal" style="display:none;">
         <div class="modal-content auth-content">
             <div class="modal-header">
@@ -69,10 +64,7 @@
             </div>
         </div>
     </div>
-
-<!-- الهيكل الرئيسي للمنصة -->
     <div id="mainPlatform" class="main-platform" style="display:none">
-        <!-- شريط التنقل الفضائي -->
         <nav class="space-navbar">
             <div class="nav-container">
                                 <button class="mobile-menu-btn" id="mobileMenuBtn" type="button" aria-label="القائمة" aria-expanded="false" aria-controls="navControls">
@@ -109,14 +101,10 @@
                     <button class="nav-btn" id="logoutNavBtn" onclick="logoutUser()" style="display:none">
                         <i class="fas fa-right-from-bracket"></i> خروج
                     </button>
-
 </div>
             </div>
         </nav>
-
-        <!-- المحتوى الرئيسي -->
         <main class="space-main">
-            <!-- القسم 1: الرئيسية -->
             <section id="homeSection" class="platform-section active">
                 <div class="hero-space">
                     <div class="hero-content">
@@ -126,7 +114,6 @@
                         <p class="hero-description">
                             استعد لامتحاناتك بمنصة تعليمية متكاملة تجمع بين التحدي والتعلم والترفيه
                         </p>
-                        
                         <div class="hero-stats">
                             <div class="stat-card">
                                 <div class="stat-icon">
@@ -165,7 +152,6 @@
                                 </div>
                             </div>
                         </div>
-                        
                         <div class="hero-actions">
                             <button class="action-btn primary-btn" onclick="showSection('exams'); showExamType('challenge')">
                                 <i class="fas fa-bolt"></i> ابدأ التحدي ⚡
@@ -178,20 +164,16 @@
                             </button>
                         </div>
                     </div>
-                    
                     <div class="hero-image">
                         <div class="floating-astronaut">
                             <i class="fas fa-user-astronaut"></i>
                         </div>
                     </div>
                 </div>
-                
-                <!-- الميزات الرئيسية -->
                 <div class="features-grid">
                     <h2 class="section-title">
                         <i class="fas fa-star"></i> مميزات المنصة الفضائية
                     </h2>
-                    
                     <div class="features-container">
                         <div class="feature-card">
                             <div class="feature-icon planet-icon">
@@ -200,15 +182,13 @@
                             <h3>امتحانات ذكية</h3>
                             <p>نظام امتحانات يتكيف مع مستواك ويقدم أسئلة متنوعة من بنك ضخم</p>
                         </div>
-                        
                         <div class="feature-card">
                             <div class="feature-icon star-icon">
                                 <i class="fas fa-trophy"></i>
                             </div>
                             <h3>وضع التحدي ⚡</h3>
                             <p>تحدي 15 سؤال في <span class="challengeDurationLabel">5</span> دقائق - تنافس مع الزملاء على المركز الأول</p>
-                        </div>
-                        
+                        </div>       
                         <div class="feature-card">
                             <div class="feature-icon rocket-icon">
                                 <i class="fas fa-cog"></i>
@@ -216,7 +196,6 @@
                             <h3>إدارة الأسئلة</h3>
                             <p>غيّر أسئلة وضع التحدي بسهولة من خلال صفحة الإعدادات</p>
                         </div>
-                        
                         <div class="feature-card">
                             <div class="feature-icon satellite-icon">
                                 <i class="fas fa-chart-bar"></i>
@@ -226,13 +205,10 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- المواد الدراسية -->
                 <div class="subjects-section">
                     <h2 class="section-title">
                         <i class="fas fa-book-open"></i> المواد الدراسية المتاحة
                     </h2>
-                    
                     <div class="subjects-grid">
                       <div class="subject-card" data-subject="physics">
                         <div class="subject-header">
@@ -262,7 +238,6 @@
                         </div>
                     </div>
                         
-                    <!-- الإلكترونيات -->
                     <div class="subject-card" data-subject="electronics">
                         <div class="subject-header">
                             <div class="subject-icon">
@@ -291,7 +266,6 @@
                         </div>
                     </div>
 
-                           <!-- الرياضيات -->
                     <div class="subject-card" data-subject="math">
                         <div class="subject-header">
                             <div class="subject-icon">
@@ -320,7 +294,6 @@
                         </div>
                     </div>
                     
-                    <!-- قوانين الحوسبة -->
                     <div class="subject-card" data-subject="computing-laws">
                         <div class="subject-header">
                             <div class="subject-icon">
@@ -348,8 +321,7 @@
                             <span><i class="fas fa-clock"></i>استعد</span>
                         </div>
                     </div>
-                    
-                    <!-- تاريخ الحوسبة -->
+
                     <div class="subject-card" data-subject="computing-history">
                         <div class="subject-header">
                             <div class="subject-icon">
@@ -378,7 +350,6 @@
                         </div>
                     </div>
                     
-                    <!-- الإنجليزية -->
                     <div class="subject-card" data-subject="english">
                         <div class="subject-header">
                             <div class="subject-icon">
@@ -436,7 +407,6 @@
                         </div>
                     </div>
                     
-                    <!-- IT -->
                     <div class="subject-card" data-subject="it">
                         <div class="subject-header">
                             <div class="subject-icon">
@@ -482,7 +452,6 @@
                     
                     </div>
                     
-                    <!-- قسم وضع التحدي -->
                     <div id="challengeExam" class="exam-interface active">
                         <div class="challenge-intro" id="challengeIntro">
                             <div class="challenge-info">
@@ -518,7 +487,6 @@
         </button>
     </div>
 </div>
-<!-- واجهة التحدي النشط -->
                         <div class="challenge-container" id="challengeContainer" style="display: none;">
                             <div class="challenge-header">
                                 <div class="challenge-timer" id="challengeTimer">
@@ -560,7 +528,6 @@
                             </div>
                         </div>
                         
-                        <!-- نتيجة التحدي -->
                         <div class="challenge-result" id="challengeResult" style="display: none;">
                             <div class="result-icon" id="resultIcon">🏆</div>
                             <h3 id="resultTitle">أحسنت!</h3>
@@ -591,7 +558,6 @@
                         </div>
                     </div>
                     
-                    <!-- قسم الاختبار السريع -->
                     <div id="quickExam" class="exam-interface">
                         <div class="exam-setup">
                             <h3><i class="fas fa-cog"></i> إعدادات الاختبار السريع</h3>
@@ -627,8 +593,6 @@
                                 <i class="fas fa-play"></i> ابدأ الاختبار السريع
                             </button>
                         </div>
-                        
-                        <!-- واجهة الاختبار النشط -->
                         <div id="activeExam" class="active-exam" style="display: none;">
                             <div class="exam-header">
                                 <div class="exam-info">
@@ -669,17 +633,13 @@
                         </div>
                     </div>
                 </div>
-            
-                <!-- نتائج الامتحانات السابقة -->
                 <div class="previous-results">
                     <h3><i class="fas fa-history"></i> نتائجك السابقة</h3>
                     <div id="resultsList" class="results-list">
-                        <!-- النتائج تظهر هنا -->
                     </div>
                 </div>
             </section>
 
-            <!-- القسم 4: الإعدادات -->
             <section id="settingsSection" class="platform-section">
                 <div class="settings-header">
                     <h1><i class="fas fa-cog"></i> الإعدادات</h1>
@@ -709,7 +669,6 @@
                             لازم يكون عندك <b>15 سؤال أو أكثر</b> عشان وضع التحدي يشتغل. كل سؤال لازم يكون له <b>4 اختيارات</b> وتحدد الإجابة الصحيحة.
                         </p>
 
-                        <!-- قفل الأدمن لتعديل أسئلة التحدي -->
                         <div id="adminGateBar" class="admin-gate locked">
                             <div class="admin-gate-status" id="adminGateStatus">
                                 <i class="fas fa-lock"></i>
@@ -742,7 +701,6 @@
                         </div>
 
                         <div id="challengeQuestionsEditor" class="questions-editor">
-                            <!-- يتم إنشاء المحرر ديناميكياً -->
                         </div>
 
                         <div class="settings-save">
@@ -804,7 +762,6 @@
     <div id="adminAttemptsContainer" class="admin-attempts-container" style="display:none;">
         <div id="adminAttemptsStatus" class="settings-note" style="margin-top: 10px;"></div>
 
-        <!-- ملخص سريع (يتحدث تلقائياً عند تحديث البيانات) -->
         <div id="adminAttemptsInsights" class="admin-attempts-insights" style="display:none;">
             <div class="admin-insights-header">
                 <h4><i class="fas fa-chart-simple"></i> ملخص سريع</h4>
@@ -845,7 +802,6 @@
                     </tr>
                 </thead>
                 <tbody id="adminAttemptsTableBody">
-                    <!-- rows injected by JS -->
                 </tbody>
             </table>
         </div>
@@ -905,7 +861,6 @@
 </div>
             </section>
         </main>
-        <!-- نافذة إدخال الاسم (إجباري قبل بدء الامتحان) -->
 <div id="nameModal" class="modal" style="display: none;">
     <div class="modal-content">
         <div class="modal-header">
@@ -947,7 +902,6 @@
     </div>
 </div>
 
-        <!-- نافذة دخول الأدمن لتعديل أسئلة التحدي -->
 <div id="adminAccessModal" class="modal" style="display: none;">
             <div class="modal-content">
                 <div class="modal-header">
@@ -984,7 +938,6 @@
 
 
         
-        <!-- نافذة نتائج الامتحان -->
         <div id="examResultsModal" class="modal" style="display: none;">
             <div class="modal-content results-modal">
                 <div class="modal-header">
@@ -1036,7 +989,6 @@
             </div>
         </div>
         
-        <!-- الفوتر -->
         <footer class="space-footer">
             <div class="footer-container">
                 <div class="footer-brand">
@@ -1073,10 +1025,8 @@
         </footer>
     </div>
 
-    <!-- رسائل التنبيه -->
     <div id="alertContainer"></div>
 
-    <!-- تحميل JavaScript -->
         <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
       import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
@@ -1121,18 +1071,10 @@
   "appId": "1:766876424170:web:30ddd3f98951063b8c0493",
   "measurementId": "G-57QYB41V6V"
 };
-
-      // Firebase init
-      const app = initializeApp(firebaseConfig);
+     const app = initializeApp(firebaseConfig);
       try { getAnalytics(app); } catch (e) {}
-
-      // Firestore
-      const db = getFirestore(app);
-
-      // Auth
-      const auth = getAuth(app);
-
-      // expose APIs for space-script_firebase_admin_updated.js
+    const db = getFirestore(app);
+    const auth = getAuth(app);
       window.firestoreDb = db;
       window.firestoreApi = {
         collection, addDoc, serverTimestamp, query, orderBy, limit, where, getDocs,
@@ -1156,29 +1098,22 @@
     </script>
 
     <script src="space-script_server_lectures_pdfviewer.js" defer></script>
-        <!-- تهيئة عند تحميل الصفحة -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // ابدأ نظام تسجيل الدخول (Firebase Auth)
             if (typeof initAuthSystem === 'function') {
                 initAuthSystem();
             }
-
-            // تهيئة قيم مدة الامتحان داخل الإعدادات + تحديث عرض المؤقت
             if (typeof initDurationSettingsUI === 'function') {
                 initDurationSettingsUI();
             }
 
-            // تهيئة اسم مادة وضع التحدي
             if (typeof initChallengeSubjectUI === 'function') {
                 initChallengeSubjectUI();
             }
-
-            // تهيئة النجوم
             if (typeof initStars === 'function') {
                 initStars();
             }
-        // تهيئة مشغل الموسيقى (زر start music)
             if (typeof initMusicPlayer === 'function') {
                 initMusicPlayer();
             }
