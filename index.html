@@ -39,7 +39,6 @@
             position: relative;
         }
 
-        /* النجوم المتحركة */
         .stars {
             position: fixed;
             top: 0;
@@ -80,7 +79,6 @@
             to { transform: translateY(-1000px); }
         }
 
-        /* الكواكب العائمة */
         .planet {
             position: fixed;
             border-radius: 50%;
@@ -112,7 +110,6 @@
             50% { transform: translateY(-30px) rotate(180deg); }
         }
 
-        /* الحاوية الرئيسية */
         .container {
             position: relative;
             z-index: 10;
@@ -123,7 +120,6 @@
             margin: 0 auto;
         }
 
-        /* العنوان */
         .header {
             margin-bottom: 60px;
             animation: fadeInDown 1s ease-out;
@@ -171,7 +167,6 @@
             line-height: 1.8;
         }
 
-        /* شبكة الكليات */
         .colleges-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -180,7 +175,6 @@
             animation: fadeInUp 1s ease-out 0.3s backwards;
         }
 
-        /* بطاقة الكلية */
         .college-card {
             position: relative;
             background: linear-gradient(145deg, rgba(26, 26, 74, 0.8) 0%, rgba(74, 26, 106, 0.6) 100%);
@@ -231,12 +225,10 @@
             filter: drop-shadow(0 0 30px rgba(0, 255, 255, 0.9));
         }
 
-        /* الأيقونة للحاسبات */
         .fci-icon {
             color: #00ffff;
         }
 
-        /* الأيقونة للذكاء الاصطناعي */
         .fai-icon {
             color: #ff00ff;
         }
@@ -262,7 +254,6 @@
             opacity: 0.9;
         }
 
-        /* زر الدخول */
         .enter-btn {
             display: inline-flex;
             align-items: center;
@@ -286,7 +277,6 @@
             background: linear-gradient(135deg, #00ffff 0%, #00aaff 100%);
         }
 
-        /* Modal للاختيار */
         .modal {
             display: none;
             position: fixed;
@@ -413,7 +403,6 @@
             font-size: 1.5rem;
         }
 
-        /* الفوتر */
         .footer {
             position: relative;
             margin-top: 60px;
@@ -429,7 +418,6 @@
             color: var(--space-cyan);
         }
 
-        /* الأنيميشن */
         @keyframes fadeInDown {
             from {
                 opacity: 0;
@@ -457,7 +445,6 @@
             to { opacity: 1; }
         }
 
-        /* استجابة للموبايل */
         @media (max-width: 768px) {
             body {
                 padding: 20px 10px;
@@ -515,23 +502,18 @@
             }
         }
 
-        /* تأثير النقر */
         .college-card:active {
             transform: translateY(-10px) scale(0.98);
         }
     </style>
 </head>
 <body>
-    <!-- النجوم المتحركة -->
     <div class="stars"></div>
     
-    <!-- الكواكب العائمة -->
     <div class="planet planet-1"></div>
     <div class="planet planet-2"></div>
 
-    <!-- المحتوى الرئيسي -->
     <div class="container">
-        <!-- العنوان -->
         <div class="header">
             <div class="logo">
                 <i class="fas fa-rocket"></i>
@@ -541,9 +523,7 @@
             <p class="description">رحلتك التعليمية تبدأ من هنا - اختر كليتك وابدأ التحدي!</p>
         </div>
 
-        <!-- شبكة الكليات -->
         <div class="colleges-grid">
-            <!-- كلية الحاسبات والمعلومات -->
             <div class="college-card" onclick="openModal('fci')">
                 <i class="fas fa-laptop-code college-icon fci-icon"></i>
                 <h3 class="college-title">حاسبات ومعلومات</h3>
@@ -557,7 +537,6 @@
                 </button>
             </div>
 
-            <!-- كلية الذكاء الاصطناعي -->
             <div class="college-card" onclick="openModal('fai')">
                 <i class="fas fa-robot college-icon fai-icon"></i>
                 <h3 class="college-title">ذكاء اصطناعي</h3>
@@ -573,12 +552,10 @@
         </div>
     </div>
 
-    <!-- الفوتر -->
     <div class="footer">
         <p>🚀 تم التطوير بواسطة <strong>MOHAMED ALBTAT</strong> | جميع الحقوق محفوظة © 2025</p>
     </div>
 
-    <!-- Modal لكلية الحاسبات -->
     <div id="fci-modal" class="modal">
         <div class="modal-content">
             <button class="close-btn" onclick="closeModal('fci')">
@@ -602,7 +579,6 @@
         </div>
     </div>
 
-    <!-- Modal لكلية الذكاء الاصطناعي -->
     <div id="fai-modal" class="modal">
         <div class="modal-content">
             <button class="close-btn" onclick="closeModal('fai')">
@@ -642,21 +618,17 @@
             
             if (college === 'fci') {
                 if (semester === 1) {
-                    // الترم الأول - الرابط الحالي
                     window.location.href = 'indexfci.html';
                 } else if (semester === 2) {
-                    // الترم التاني - المجلد الجديد
                     window.location.href = 'fci 2/index.html';
                 }
             } else if (college === 'fai') {
                 if (semester === 2) {
-                    // الترم التاني - الرابط الحالي
                     window.location.href = 'fai/index.html';
                 }
             }
         }
 
-        // تأثيرات إضافية عند تحريك الماوس
         document.querySelectorAll('.college-card').forEach(card => {
             card.addEventListener('mousemove', (e) => {
                 const rect = card.getBoundingClientRect();
@@ -676,8 +648,6 @@
                 card.style.transform = '';
             });
         });
-
-        // إغلاق الـ Modal عند الضغط على الخلفية
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
                 if (e.target === modal) {
@@ -687,7 +657,6 @@
             });
         });
 
-        // إغلاق الـ Modal عند الضغط على Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 document.querySelectorAll('.modal.active').forEach(modal => {
@@ -696,8 +665,6 @@
                 });
             }
         });
-
-        // منع النقر بالزر الأيمن على الصفحة (اختياري)
         document.addEventListener('contextmenu', (e) => {
             e.preventDefault();
         });
