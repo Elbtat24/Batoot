@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة المحاضرات | بطوط التعليمية</title>
+    <link rel="stylesheet" href="space-style_admin_updated_v2_mobile_fixed.css">
+    <link rel="stylesheet" href="neo3d-theme.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    
+    <style>
+        .lectures-dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        .dashboard-header {
+            background: var(--card-gradient);
+            border: 1px solid var(--neo-stroke);
+            border-radius: var(--neo-radius-xl);
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: var(--neo-shadow-lg), var(--neo-inner);
+        }
+        
+        .upload-section {
+            background: var(--card-gradient);
+            border: 1px solid var(--neo-stroke);
+            border-radius: var(--neo-radius-lg);
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: var(--neo-shadow-md), var(--neo-inner);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--space-light-cyan);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .form-group select,
+        .form-group input[type="text"],
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(5, 8, 20, .50);
+            border: 1px solid rgba(255,255,255,.14);
+            border-radius: var(--neo-radius-md);
+            color: var(--space-white);
+            box-shadow: inset 0 10px 22px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.10);
+            transition: var(--neo-trans);
+        }
+        
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: rgba(77,225,255,.45);
+            box-shadow: inset 0 10px 22px rgba(0,0,0,.35), 0 0 0 6px rgba(77,225,255,.08);
+        }
+        
+        .upload-btn {
+            background: linear-gradient(135deg, rgba(77,225,255,.95), rgba(122,92,255,.85));
+            color: #061022;
+            border: 1px solid rgba(255,255,255,.18);
+            border-radius: 14px;
+            padding: 14px 28px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: var(--neo-shadow-sm), var(--neo-inner);
+            transition: var(--neo-trans);
+            font-size: 1rem;
+        }
+        
+        .upload-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: var(--neo-shadow-md), 0 0 0 6px rgba(77,225,255,.06), var(--neo-inner);
+        }
+        
+        .upload-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .lectures-list {
+            display: grid;
+            gap: 20px;
+        }
+        
+        .lecture-item {
+            background: var(--card-gradient);
+            border: 1px solid var(--neo-stroke);
+            border-radius: var(--neo-radius-lg);
+            padding: 20px;
+            box-shadow: var(--neo-shadow-md), var(--neo-inner);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .lecture-info {
+            flex: 1;
+        }
+        
+        .lecture-info h4 {
+            margin: 0 0 8px 0;
+            color: var(--space-light-cyan);
+            font-size: 1.1rem;
+        }
+        
+        .lecture-meta {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+            color: rgba(238,242,255,.7);
+        }
+        
+        .lecture-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .lecture-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-icon {
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 14px;
+            padding: 10px 16px;
+            cursor: pointer;
+            transition: var(--neo-trans);
+            color: var(--space-white);
+            box-shadow: var(--neo-shadow-sm), var(--neo-inner);
+        }
+        
+        .btn-icon:hover {
+            transform: translateY(-2px);
+            border-color: rgba(77,225,255,.35);
+            background: rgba(255,255,255,.07);
+        }
+        
+        .btn-delete {
+            background: rgba(255,100,100,.1);
+            border-color: rgba(255,100,100,.3);
+        }
+        
+        .btn-delete:hover {
+            background: rgba(255,100,100,.2);
+            border-color: rgba(255,100,100,.5);
+        }
+        
+        .status-message {
+            padding: 12px 20px;
+            border-radius: var(--neo-radius-md);
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .status-message.success {
+            background: rgba(100,255,100,.1);
+            border: 1px solid rgba(100,255,100,.3);
+            color: #a0ffa0;
+        }
+        
+        .status-message.error {
+            background: rgba(255,100,100,.1);
+            border: 1px solid rgba(255,100,100,.3);
+            color: #ffa0a0;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .loading-overlay.active {
+            display: flex;
+        }
+        
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255,255,255,.2);
+            border-top-color: var(--space-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .github-config {
+            background: rgba(255,255,255,.03);
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: var(--neo-radius-md);
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .github-config h4 {
+            margin: 0 0 15px 0;
+            color: var(--space-yellow);
+        }
+        
+        .config-note {
+            font-size: 0.85rem;
+            color: rgba(238,242,255,.6);
+            margin-top: 8px;
+        }
+        
+        .back-btn {
+            background: rgba(255,255,255,.06);
+            border: 1px solid rgba(255,255,255,.12);
+            border-radius: 14px;
+            padding: 10px 20px;
+            color: var(--space-white);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--neo-trans);
+            box-shadow: var(--neo-shadow-sm), var(--neo-inner);
+        }
+        
+        .back-btn:hover {
+            transform: translateY(-2px);
+            border-color: rgba(77,225,255,.35);
+        }
+        
+        @media (max-width: 768px) {
+            .lecture-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .lecture-actions {
+                width: 100%;
+            }
+            
+            .btn-icon {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body class="space-theme">
+    <!-- النجوم المتحركة في الخلفية -->
+    <div class="stars"></div>
+    <div class="stars2"></div>
+    <div class="stars3"></div>
+    
+    <!-- الكواكب العائمة -->
+    <div class="planet planet-1"></div>
+    <div class="planet planet-2"></div>
+    <div class="planet planet-3"></div>
+    
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+    
+    <div class="lectures-dashboard">
+        <div class="dashboard-header">
+            <a href="index.html" class="back-btn">
+                <i class="fas fa-arrow-right"></i>
+                العودة للمنصة
+            </a>
+            <h1 style="margin: 20px 0 10px 0;">
+                <i class="fas fa-book-reader"></i>
+                إدارة المحاضرات
+            </h1>
+            <p style="color: rgba(238,242,255,.7); margin: 0;">
+                رفع وإدارة ملفات المحاضرات لجميع المواد
+            </p>
+        </div>
+        
+        <div id="statusMessage" class="status-message"></div>
+        
+        <!-- GitHub Configuration -->
+        <div class="upload-section">
+            <div class="github-config">
+                <h4><i class="fab fa-github"></i> إعدادات GitHub</h4>
+                <div class="form-group">
+                    <label>GitHub Personal Access Token</label>
+                    <input type="password" id="githubToken" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                    <p class="config-note">
+                        احصل على Token من: GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)
+                        <br>الصلاحيات المطلوبة: repo (full control)
+                    </p>
+                </div>
+                
+                <div class="form-group">
+                    <label>اسم المستخدم على GitHub</label>
+                    <input type="text" id="githubUsername" placeholder="username">
+                </div>
+                
+                <div class="form-group">
+                    <label>اسم المستودع (Repository)</label>
+                    <input type="text" id="githubRepo" placeholder="my-lectures-repo">
+                    <p class="config-note">
+                        تأكد من إنشاء repository عام على GitHub أولاً
+                    </p>
+                </div>
+                
+                <button onclick="saveGithubConfig()" class="upload-btn">
+                    <i class="fas fa-save"></i>
+                    حفظ الإعدادات
+                </button>
+            </div>
+        </div>
+        
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <h3 style="margin: 0 0 20px 0;">
+                <i class="fas fa-cloud-upload-alt"></i>
+                رفع محاضرة جديدة
+            </h3>
+            
+            <form id="uploadForm">
+                <div class="form-group">
+                    <label>المادة الدراسية</label>
+                    <select id="subjectSelect" required>
+                        <option value="">اختر المادة</option>
+                        <option value="circuit">Circuit - الدوائر الكهربائية</option>
+                        <option value="economic">Economic - الاقتصاد</option>
+                        <option value="math">Math - الرياضيات</option>
+                        <option value="physics">Physics - الفيزياء</option>
+                        <option value="privacy">Privacy - الخصوصية</option>
+                        <option value="programing">Programming - البرمجة</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>عنوان المحاضرة</label>
+                    <input type="text" id="lectureTitle" placeholder="مثال: المحاضرة الأولى - مقدمة في الدوائر" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>وصف المحاضرة (اختياري)</label>
+                    <input type="text" id="lectureDescription" placeholder="وصف مختصر للمحاضرة">
+                </div>
+                
+                <div class="form-group">
+                    <label>ملف PDF</label>
+                    <input type="file" id="pdfFile" accept=".pdf" required>
+                    <p class="config-note">
+                        حجم الملف الأقصى: 25 ميجابايت
+                    </p>
+                </div>
+                
+                <button type="submit" class="upload-btn" id="uploadBtn">
+                    <i class="fas fa-upload"></i>
+                    رفع المحاضرة
+                </button>
+            </form>
+        </div>
+        
+        <!-- Lectures List -->
+        <div class="upload-section">
+            <h3 style="margin: 0 0 20px 0;">
+                <i class="fas fa-list"></i>
+                المحاضرات المرفوعة
+            </h3>
+            
+            <div class="form-group">
+                <label>فلترة حسب المادة</label>
+                <select id="filterSubject" onchange="filterLectures()">
+                    <option value="">جميع المواد</option>
+                    <option value="circuit">Circuit - الدوائر الكهربائية</option>
+                    <option value="economic">Economic - الاقتصاد</option>
+                    <option value="math">Math - الرياضيات</option>
+                    <option value="physics">Physics - الفيزياء</option>
+                    <option value="privacy">Privacy - الخصوصية</option>
+                    <option value="programing">Programming - البرمجة</option>
+                </select>
+            </div>
+            
+            <div id="lecturesList" class="lectures-list">
+                <p style="text-align: center; color: rgba(238,242,255,.5); padding: 40px 0;">
+                    لا توجد محاضرات بعد
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="lectures-manager.js"></script>
+</body>
+</html>
