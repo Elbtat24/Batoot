@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>As2let El Physics Lel Final</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-blue: #007bff;
+            --deep-blue: #003366;
+            --light-blue: #e3f2fd;
+            --accent-blue: #00d4ff;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, #001f3f 0%, #003366 50%, #007bff 100%);
+            background-attachment: fixed;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            /* منع تحديد النص (Copy) */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        header h1 {
+            color: white;
+            font-size: 24px;
+            margin: 0;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .admin-link {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: bold;
+            padding: 8px 20px;
+            border: 2px solid var(--accent-blue);
+            border-radius: 30px;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .admin-link:hover {
+            background: var(--accent-blue);
+            color: var(--deep-blue);
+            box-shadow: 0 0 20px var(--accent-blue);
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 50px auto;
+            background: var(--glass-bg);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            animation: slideUp 0.8s ease;
+            flex-grow: 1;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-radius: 18px;
+            transition: var(--transition);
+        }
+
+        .question-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,123,255,0.15);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 10px 0;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            box-sizing: border-box;
+            transition: var(--transition);
+            /* السماح بالكتابة جوه الانبوت عادي */
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        .option-row { display: flex; align-items: center; gap: 15px; margin-top: 10px; }
+
+        input[type="radio"] {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--primary-blue);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        input[type="radio"]:checked { background: var(--primary-blue); }
+
+        .btn-send {
+            background: linear-gradient(to left, var(--deep-blue), var(--primary-blue));
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 18px;
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        #admin-section { display: none; }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--deep-blue);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            color: white;
+        }
+
+        /* تنسيقات صفحة الأدمن */
+        .admin-q-item {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .admin-q-title {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            direction: ltr;
+            text-align: left;
+            transition: background 0.3s;
+        }
+
+        .admin-q-title:hover {
+            background: #e9ecef;
+        }
+
+        .admin-q-answers {
+            display: none;
+            padding: 15px 20px;
+            border-top: 1px solid #ddd;
+            background: #fff;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .admin-q-answers ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .admin-q-answers li {
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            background: #f1f1f1;
+            border-left: 4px solid transparent;
+        }
+
+        .admin-q-answers li.correct-ans {
+            background: #ffe6e6; 
+            border-left: 4px solid red;
+            font-weight: bold;
+            color: red;
+        }
+
+    </style>
+
+    <script>
+        // 1. منع الكليك يمين
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        // 2. منع اختصارات الكيبورد (F12, Ctrl+Shift+I, Ctrl+U, الخ)
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123) { return false; } // F12
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; } // Ctrl+Shift+I
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; } // Ctrl+Shift+C
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; } // Ctrl+Shift+J
+            if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } // Ctrl+U (View Source)
+        }
+
+        // 3. فخ الـ Debugger لو حد فتح الـ Inspect بالقوة
+        setInterval(function() {
+            const before = new Date().getTime();
+            debugger;
+            const after = new Date().getTime();
+            if (after - before > 100) {
+                // تدمير محتوى الصفحة وتحويلها لبيضاء مع رسالة التحذير
+                document.body.innerHTML = '<h1 style="text-align:center; margin-top:30vh; color:red; direction:rtl; font-family:Cairo; font-size: 35px;">برجاء اغلاق النافذه اللي انت فاتحها!</h1>';
+                document.body.style.background = 'white';
+            }
+        }, 500);
+    </script>
+</head>
+<body>
+
+<div class="loading-overlay" id="loader">
+    <p>جاري المعالجة...</p>
+</div>
+
+<header>
+    <h1>As2let El Physics Lel Final</h1>
+    <div class="admin-link" onclick="openAdmin()">لوحة التحكم (Admin)</div>
+</header>
+
+<div class="container" id="user-section">
+    <h2 style="text-align:center;">✨ إرسال أسئلة المراجعة النهائية</h2>
+    
+    <div class="question-card">
+        <h3>Question 1</h3>
+        <input type="text" id="q1-text" placeholder="Enter question 1...">
+        <div class="option-row"><input type="radio" name="q1-correct" value="0"> <input type="text" id="q1-opt0" placeholder="Option A"></div>
+        <div class="option-row"><input type="radio" name="q1-correct" value="1"> <input type="text" id="q1-opt1" placeholder="Option B"></div>
+        <div class="option-row"><input type="radio" name="q1-correct" value="2"> <input type="text" id="q1-opt2" placeholder="Option C"></div>
+        <div class="option-row"><input type="radio" name="q1-correct" value="3"> <input type="text" id="q1-opt3" placeholder="Option D"></div>
+    </div>
+
+    <div class="question-card">
+        <h3>Question 2</h3>
+        <input type="text" id="q2-text" placeholder="Enter question 2...">
+        <div class="option-row"><input type="radio" name="q2-correct" value="0"> <input type="text" id="q2-opt0" placeholder="Option A"></div>
+        <div class="option-row"><input type="radio" name="q2-correct" value="1"> <input type="text" id="q2-opt1" placeholder="Option B"></div>
+        <div class="option-row"><input type="radio" name="q2-correct" value="2"> <input type="text" id="q2-opt2" placeholder="Option C"></div>
+        <div class="option-row"><input type="radio" name="q2-correct" value="3"> <input type="text" id="q2-opt3" placeholder="Option D"></div>
+    </div>
+
+    <button class="btn-send" id="submit-btn">إرسال الأسئلة</button>
+</div>
+
+<div class="container" id="admin-section">
+    <div style="display:flex; justify-content: space-between; align-items:center;">
+        <h2>Admin Dashboard</h2>
+        <button onclick="closeAdmin()" style="background: none; border: 1px solid #ccc; cursor: pointer; padding: 5px 15px; border-radius: 10px;">رجوع</button>
+    </div>
+    <button class="btn-send" style="margin-top:20px; margin-bottom:20px;" onclick="exportToWord()">📥 تحميل ملف Word</button>
+    
+    <p style="text-align:center; color:#555; font-size:14px;">اضغط على السؤال لعرض الإجابات</p>
+    <div id="admin-content"></div>
+</div>
+
+<footer>
+    by Albtat
+</footer>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyCEwlDv00r6_eZeiY_gkn_NTCcD9xzDMbo",
+        authDomain: "giusto-23b6e.firebaseapp.com",
+        projectId: "giusto-23b6e",
+        storageBucket: "giusto-23b6e.firebasestorage.app",
+        messagingSenderId: "456492521831",
+        appId: "1:456492521831:web:48fd655a6b6ce7de3d37c2",
+        measurementId: "G-LCVJFP5Q6J"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    let allData = [];
+
+    document.getElementById('submit-btn').onclick = async () => {
+        const q1 = { text: document.getElementById('q1-text').value, opts: [0,1,2,3].map(i => document.getElementById(`q1-opt${i}`).value), correct: document.querySelector('input[name="q1-correct"]:checked')?.value };
+        const q2 = { text: document.getElementById('q2-text').value, opts: [0,1,2,3].map(i => document.getElementById(`q2-opt${i}`).value), correct: document.querySelector('input[name="q2-correct"]:checked')?.value };
+
+        if(!q1.text || !q1.correct || !q2.text || !q2.correct) { alert("Please complete both questions and select the right answers!"); return; }
+
+        document.getElementById('loader').style.display = 'flex';
+        try {
+            await addDoc(collection(db, "physics_quiz"), { q1, q2, date: new Date() });
+            alert("Sent Successfully!");
+            location.reload();
+        } catch(e) { alert("Error connecting to database!"); }
+        document.getElementById('loader').style.display = 'none';
+    };
+
+    window.openAdmin = async () => {
+        if(prompt("Password:") === "albtat@#10") {
+            document.getElementById('loader').style.display = 'flex';
+            document.getElementById('user-section').style.display = 'none';
+            document.getElementById('admin-section').style.display = 'block';
+            await loadData();
+            document.getElementById('loader').style.display = 'none';
+        }
+    };
+
+    window.closeAdmin = () => {
+        document.getElementById('admin-section').style.display = 'none';
+        document.getElementById('user-section').style.display = 'block';
+    };
+
+    async function loadData() {
+        const snap = await getDocs(collection(db, "physics_quiz"));
+        allData = [];
+        snap.forEach(doc => {
+            const d = doc.data();
+            [d.q1, d.q2].forEach(q => { allData.push(q); });
+        });
+
+        let html = '';
+        allData.forEach((q, i) => {
+            html += `
+            <div class="admin-q-item">
+                <div class="admin-q-title" onclick="toggleAnswers(${i})">
+                    <span style="color:var(--primary-blue);">Q${i+1}:</span> ${q.text}
+                </div>
+                <div class="admin-q-answers" id="ans-${i}">
+                    <ul>
+                        <li class="${q.correct == 0 ? 'correct-ans' : ''}">a) ${q.opts[0]}</li>
+                        <li class="${q.correct == 1 ? 'correct-ans' : ''}">b) ${q.opts[1]}</li>
+                        <li class="${q.correct == 2 ? 'correct-ans' : ''}">c) ${q.opts[2]}</li>
+                        <li class="${q.correct == 3 ? 'correct-ans' : ''}">d) ${q.opts[3]}</li>
+                    </ul>
+                </div>
+            </div>`;
+        });
+        document.getElementById('admin-content').innerHTML = html;
+    }
+
+    window.toggleAnswers = (index) => {
+        const el = document.getElementById(`ans-${index}`);
+        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+    };
+
+    window.exportToWord = () => {
+        let content = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+            <meta charset="utf-8">
+            <style>
+                table { border-collapse: collapse; }
+                td { border: 1px solid windowtext; }
+            </style>
+        </head>
+        <body style="font-family: Arial, sans-serif; direction: rtl;">
+            <p style="text-align: center; font-size: 14pt; margin-bottom: 20px;">
+                <u><b>اختر الاجابة الصحيحة لكل فقرة من الفقرات التالية: يتم الاجابة في البابل شيت المرفق ويتم تسليم الامتحان مع البابل شيت</b></u>
+            </p>
+            <table border="1" cellpadding="4" cellspacing="0" width="100%" style="border-collapse: collapse; border: 1px solid black; font-size: 11pt; direction: rtl;">
+                <tr>
+                    <td width="5%" style="border: 1px solid black; text-align: center;">No.</td>
+                    <td width="35%" style="border: 1px solid black; text-align: left; direction: ltr;">Question</td>
+                    <td width="15%" style="border: 1px solid black; text-align: center;">(a) الاختيار الاول</td>
+                    <td width="15%" style="border: 1px solid black; text-align: center;">(b) الاختيار الثاني</td>
+                    <td width="15%" style="border: 1px solid black; text-align: center;">(c) الاختيار الثالث</td>
+                    <td width="15%" style="border: 1px solid black; text-align: center;">(d) الاختيار الرابع</td>
+                </tr>
+        `;
+
+        allData.forEach((q, i) => {
+            const opt0 = q.correct == 0 ? `<span style="color: red;">${q.opts[0]}</span>` : q.opts[0];
+            const opt1 = q.correct == 1 ? `<span style="color: red;">${q.opts[1]}</span>` : q.opts[1];
+            const opt2 = q.correct == 2 ? `<span style="color: red;">${q.opts[2]}</span>` : q.opts[2];
+            const opt3 = q.correct == 3 ? `<span style="color: red;">${q.opts[3]}</span>` : q.opts[3];
+
+            content += `
+                <tr>
+                    <td width="5%" style="border: 1px solid black; text-align: center;">${i+1}</td>
+                    <td width="35%" style="border: 1px solid black; text-align: left; direction: ltr;">${q.text}</td>
+                    <td width="15%" style="border: 1px solid black; text-align: left; direction: ltr;">${opt0}</td>
+                    <td width="15%" style="border: 1px solid black; text-align: left; direction: ltr;">${opt1}</td>
+                    <td width="15%" style="border: 1px solid black; text-align: left; direction: ltr;">${opt2}</td>
+                    <td width="15%" style="border: 1px solid black; text-align: left; direction: ltr;">${opt3}</td>
+                </tr>
+            `;
+        });
+
+        content += `</table></body></html>`;
+
+        const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'نموذج_امتحان_الفيزياء.doc';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+</script>
+
+</body>
+</html>
