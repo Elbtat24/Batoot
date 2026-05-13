@@ -294,20 +294,25 @@
 </footer>
 
 <script type="module">
+    // تم استيراد المكتبات الأساسية والإحصائيات الخاصة بالمشروع الجديد
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
     import { getFirestore, collection, addDoc, getDocs } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
+    // إعدادات Firebase الجديدة الخاصة بك
     const firebaseConfig = {
-        apiKey: "AIzaSyCEwlDv00r6_eZeiY_gkn_NTCcD9xzDMbo",
-        authDomain: "giusto-23b6e.firebaseapp.com",
-        projectId: "giusto-23b6e",
-        storageBucket: "giusto-23b6e.firebasestorage.app",
-        messagingSenderId: "456492521831",
-        appId: "1:456492521831:web:48fd655a6b6ce7de3d37c2",
-        measurementId: "G-LCVJFP5Q6J"
+        apiKey: "AIzaSyD5_ux05sS5-e7NcHp78f1782eswd0Y_tI",
+        authDomain: "final-physics.firebaseapp.com",
+        projectId: "final-physics",
+        storageBucket: "final-physics.firebasestorage.app",
+        messagingSenderId: "838980806715",
+        appId: "1:838980806715:web:5b8d44b912591c2837141e",
+        measurementId: "G-32EJSSECZL"
     };
 
+    // تهيئة المشروع
     const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
     const db = getFirestore(app);
     let allData = [];
 
@@ -341,6 +346,12 @@
                 document.getElementById('loader').style.display = 'none';
             }
         }
+    };
+
+    // إضافة وظيفة زر الرجوع الذي كان ينقصه الكود
+    window.closeAdmin = () => {
+        document.getElementById('admin-section').style.display = 'none';
+        document.getElementById('user-section').style.display = 'block';
     };
 
     async function loadData() {
