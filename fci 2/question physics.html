@@ -237,7 +237,6 @@
             debugger;
             const after = new Date().getTime();
             if (after - before > 100) {
-                // تدمير محتوى الصفحة وتحويلها لبيضاء مع رسالة التحذير
                 document.body.innerHTML = '<h1 style="text-align:center; margin-top:30vh; color:red; direction:rtl; font-family:Cairo; font-size: 35px;">برجاء اغلاق النافذه اللي انت فاتحها!</h1>';
                 document.body.style.background = 'white';
             }
@@ -330,44 +329,61 @@
     window.openAdmin = async () => {
         if(prompt("Password:") === "albtat@#10") {
             document.getElementById('loader').style.display = 'flex';
-            document.getElementById('user-section').style.display = 'none';
-            document.getElementById('admin-section').style.display = 'block';
-            await loadData();
-            document.getElementById('loader').style.display = 'none';
+            
+            try {
+                await loadData();
+                document.getElementById('user-section').style.display = 'none';
+                document.getElementById('admin-section').style.display = 'block';
+            } catch (error) {
+                console.error("Error loading data: ", error);
+                alert("حصلت مشكلة في تحميل البيانات: " + error.message);
+            } finally {
+                document.getElementById('loader').style.display = 'none';
+            }
         }
-    };
-
-    window.closeAdmin = () => {
-        document.getElementById('admin-section').style.display = 'none';
-        document.getElementById('user-section').style.display = 'block';
     };
 
     async function loadData() {
         const snap = await getDocs(collection(db, "physics_quiz"));
         allData = [];
+        
         snap.forEach(doc => {
             const d = doc.data();
-            [d.q1, d.q2].forEach(q => { allData.push(q); });
+            console.log("Document Data:", d); // عشان لو حبيت تفتح الـ Console وتشوف الداتا بعينك
+            
+            // قراءة الأسئلة الأصلية لو موجودة
+            if (d.q1) allData.push(d.q1);
+            if (d.q2) allData.push(d.q2);
+            
+            // لو الموقع التاني باعت داتا بتنسيق مختلف مش جوه q1 ولا q2
+            if (!d.q1 && !d.q2 && d.text) {
+                allData.push(d); 
+            }
         });
 
         let html = '';
         allData.forEach((q, i) => {
+            // حماية عشان لو في قيم ناقصة في الداتا الغريبة
+            const qText = q.text || "سؤال بتنسيق مختلف أو ناقص";
+            const options = q.opts || ["غير موجود", "غير موجود", "غير موجود", "غير موجود"];
+            const correctAns = q.correct !== undefined ? q.correct : -1;
+
             html += `
             <div class="admin-q-item">
                 <div class="admin-q-title" onclick="toggleAnswers(${i})">
-                    <span style="color:var(--primary-blue);">Q${i+1}:</span> ${q.text}
+                    <span style="color:var(--primary-blue);">Q${i+1}:</span> ${qText}
                 </div>
                 <div class="admin-q-answers" id="ans-${i}">
                     <ul>
-                        <li class="${q.correct == 0 ? 'correct-ans' : ''}">a) ${q.opts[0]}</li>
-                        <li class="${q.correct == 1 ? 'correct-ans' : ''}">b) ${q.opts[1]}</li>
-                        <li class="${q.correct == 2 ? 'correct-ans' : ''}">c) ${q.opts[2]}</li>
-                        <li class="${q.correct == 3 ? 'correct-ans' : ''}">d) ${q.opts[3]}</li>
+                        <li class="${correctAns == 0 ? 'correct-ans' : ''}">a) ${options[0] || ""}</li>
+                        <li class="${correctAns == 1 ? 'correct-ans' : ''}">b) ${options[1] || ""}</li>
+                        <li class="${correctAns == 2 ? 'correct-ans' : ''}">c) ${options[2] || ""}</li>
+                        <li class="${correctAns == 3 ? 'correct-ans' : ''}">d) ${options[3] || ""}</li>
                     </ul>
                 </div>
             </div>`;
         });
-        document.getElementById('admin-content').innerHTML = html;
+        document.getElementById('admin-content').innerHTML = html || "<p style='text-align:center;'>لا توجد بيانات متوافقة للعرض</p>";
     }
 
     window.toggleAnswers = (index) => {
@@ -401,15 +417,17 @@
         `;
 
         allData.forEach((q, i) => {
-            const opt0 = q.correct == 0 ? `<span style="color: red;">${q.opts[0]}</span>` : q.opts[0];
-            const opt1 = q.correct == 1 ? `<span style="color: red;">${q.opts[1]}</span>` : q.opts[1];
-            const opt2 = q.correct == 2 ? `<span style="color: red;">${q.opts[2]}</span>` : q.opts[2];
-            const opt3 = q.correct == 3 ? `<span style="color: red;">${q.opts[3]}</span>` : q.opts[3];
+            const options = q.opts || ["", "", "", ""];
+            const opt0 = q.correct == 0 ? `<span style="color: red;">${options[0]}</span>` : options[0];
+            const opt1 = q.correct == 1 ? `<span style="color: red;">${options[1]}</span>` : options[1];
+            const opt2 = q.correct == 2 ? `<span style="color: red;">${options[2]}</span>` : options[2];
+            const opt3 = q.correct == 3 ? `<span style="color: red;">${options[3]}</span>` : options[3];
+            const qText = q.text || "";
 
             content += `
                 <tr>
                     <td width="5%" style="border: 1px solid black; text-align: center;">${i+1}</td>
-                    <td width="35%" style="border: 1px solid black; text-align: left; direction: ltr;">${q.text}</td>
+                    <td width="35%" style="border: 1px solid black; text-align: left; direction: ltr;">${qText}</td>
                     <td width="15%" style="border: 1px solid black; text-align: left; direction: ltr;">${opt0}</td>
                     <td width="15%" style="border: 1px solid black; text-align: left; direction: ltr;">${opt1}</td>
                     <td width="15%" style="border: 1px solid black; text-align: left; direction: ltr;">${opt2}</td>
